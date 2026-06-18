@@ -14,21 +14,28 @@ const VideoPage: React.FC<VideoPageProps> = ({ navigate }) => (
     </div>
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
       {[1, 2, 3, 4].map((n) => (
-        <div key={n} className="video-feed" style={{ height: 220, position: "relative" }}>
-          <div style={{ textAlign: "center" }}>
-            <Icon name="camera" size={32} color="#475569" />
-            <div style={{ marginTop: 8, color: "#94a3b8", fontWeight: 600 }}>Video Feed {n}</div>
-            <div style={{ marginTop: 4, fontSize: 12, color: "#64748b" }}>Eagle Eye Sensor — Store Entrance {n}</div>
-            <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: "center" }}>
-              <span className="badge badge-green">● Live</span>
-              <span className="badge badge-gray">95.2% Accuracy</span>
+        <div key={n} className="video-feed" style={{ height: 220, position: "relative", flexDirection: "column", justifyContent: "space-between", alignItems: "stretch", padding: "12px 16px" }}>
+          {/* Top: feed label + camera icon */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ color: "#94a3b8", fontWeight: 600, fontSize: 13 }}>Video Feed {n}</div>
+              <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>Eagle Eye Sensor — Store Entrance {n}</div>
+            </div>
+            <Icon name="camera" size={18} color="#475569" />
+          </div>
+          {/* Middle: count line in open video area */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flex: 1 }}>
+            <div style={{ width: "72%", position: "relative" }}>
+              <div style={{ height: 2, background: "#3b82f6", opacity: 0.8 }} />
+              <div style={{ position: "absolute", top: -18, left: "50%", transform: "translateX(-50%)", fontSize: 10, color: "#60a5fa", fontWeight: 700, whiteSpace: "nowrap", letterSpacing: "0.06em" }}>
+                COUNT LINE
+              </div>
             </div>
           </div>
-          {/* Count line indicator */}
-          <div style={{ position: "absolute", top: "50%", left: "15%", right: "15%", height: 2, background: "#3b82f6", opacity: 0.7 }}>
-            <div style={{ position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)", fontSize: 10, color: "#60a5fa", fontWeight: 600, whiteSpace: "nowrap" }}>
-              COUNT LINE
-            </div>
+          {/* Bottom: status badges */}
+          <div style={{ display: "flex", gap: 8 }}>
+            <span className="badge badge-green">● Live</span>
+            <span className="badge badge-gray">95.2% Accuracy</span>
           </div>
         </div>
       ))}
