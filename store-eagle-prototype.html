@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Store Eagle Platform</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>
+  Babel.registerPreset('react-classic', {
+    presets: [[Babel.availablePresets['react'], { runtime: 'classic' }]]
+  });
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        border: "hsl(214.3 31.8% 91.4%)",
+        input: "hsl(214.3 31.8% 91.4%)",
+        ring: "hsl(222.2 84% 4.9%)",
+        background: "hsl(0 0% 100%)",
+        foreground: "hsl(222.2 84% 4.9%)",
+        primary: { DEFAULT: "hsl(222.2 47.4% 11.2%)", foreground: "hsl(210 40% 98%)" },
+        secondary: { DEFAULT: "hsl(210 40% 96.1%)", foreground: "hsl(222.2 47.4% 11.2%)" },
+        muted: { DEFAULT: "hsl(210 40% 96.1%)", foreground: "hsl(215.4 16.3% 46.9%)" },
+        accent: { DEFAULT: "hsl(210 40% 96.1%)", foreground: "hsl(222.2 47.4% 11.2%)" },
+        destructive: { DEFAULT: "hsl(0 84.2% 60.2%)", foreground: "hsl(210 40% 98%)" },
+        card: { DEFAULT: "hsl(0 0% 100%)", foreground: "hsl(222.2 84% 4.9%)" },
+      }
+    }
+  }
+}
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; color: #64748b; transition: all 0.15s; }
+  .sidebar-item:hover { background: #f1f5f9; color: #0f172a; }
+  .sidebar-item.active { background: #0f172a; color: white; }
+  .sidebar-item svg { flex-shrink: 0; }
+  .card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .metric-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
+  .metric-value { font-size: 28px; font-weight: 700; color: #0f172a; }
+  .metric-label { font-size: 13px; color: #64748b; margin-top: 2px; }
+  .metric-delta-green { font-size: 12px; color: #16a34a; font-weight: 600; }
+  .metric-delta-red { font-size: 12px; color: #dc2626; font-weight: 600; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: #0f172a; color: white; }
+  .btn-primary:hover { background: #1e293b; }
+  .btn-outline { background: white; color: #0f172a; border: 1px solid #e2e8f0; }
+  .btn-outline:hover { background: #f8fafc; }
+  .btn-ghost { background: transparent; color: #64748b; }
+  .btn-ghost:hover { background: #f1f5f9; color: #0f172a; }
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 12px; font-weight: 500; }
+  .badge-green { background: #dcfce7; color: #16a34a; }
+  .badge-red { background: #fee2e2; color: #dc2626; }
+  .badge-gray { background: #f1f5f9; color: #64748b; }
+  .badge-blue { background: #dbeafe; color: #1d4ed8; }
+  .select { padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; background: white; cursor: pointer; color: #0f172a; }
+  .table-row:hover { background: #f8fafc; }
+  .video-feed { background: #1e293b; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 14px; font-weight: 500; border: 2px dashed #334155; }
+  .heatmap-cell { border-radius: 3px; transition: opacity 0.15s; cursor: default; }
+  .power-hour { background: #bbf7d0; border-radius: 4px; }
+  .bar-chart-bar { background: #3b82f6; border-radius: 4px 4px 0 0; transition: all 0.2s; }
+  .bar-chart-bar:hover { opacity: 0.8; }
+  .tab { padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; color: #64748b; }
+  .tab.active { border-bottom-color: #0f172a; color: #0f172a; }
+  .tab:hover { color: #0f172a; }
+  .input { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; outline: none; width: 100%; }
+  .input:focus { border-color: #94a3b8; }
+  .checkbox { width: 16px; height: 16px; cursor: pointer; }
+  .dropdown-menu { position: absolute; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); z-index: 100; min-width: 200px; padding: 4px; }
+  .dropdown-item { padding: 8px 12px; border-radius: 4px; font-size: 13px; cursor: pointer; color: #0f172a; }
+  .dropdown-item:hover { background: #f1f5f9; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react-classic">
+const { useState, useRef, useEffect } = React;
+
+// ─── Icons ────────────────────────────────────────────────────────────────────
+const Icon = ({ name, size = 16, color = "currentColor" }) => {
+  const icons = {
+    dashboard: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>,
+    video: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>,
+    traffic: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+    performance: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+    optimize: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>,
+    benchmark: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+    analytics: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-8"/></svg>,
+    reports: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>,
+    admin: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>,
+    help: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+    chevronDown: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>,
+    chevronRight: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>,
+    check: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>,
+    x: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+    plus: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    download: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+    save: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
+    user: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+    location: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>,
+    health: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>,
+    camera: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>,
+    filter: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
+    edit: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+    mail: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
+    bell: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+    insights: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+    liftlabs: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M9 3h6M9 3v5l-4 9a1 1 0 0 0 .9 1.5h12.2A1 1 0 0 0 19 17l-4-9V3"/><line x1="6" y1="13" x2="18" y2="13"/></svg>,
+    shield: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+    arrowRight: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+    zap: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+    play: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>,
+  };
+  return icons[name] || null;
+};
+
+// ─── Mini spark-line chart ─────────────────────────────────────────────────
+const SparkLine = ({ data, color = "#3b82f6", lastYear, showDelta = false }) => {
+  const h = 48, w = 140, pad = 4;
+  const all = lastYear ? [...data, ...lastYear] : data;
+  const min = Math.min(...all), max = Math.max(...all);
+  const scale = (v) => h - pad - ((v - min) / (max - min || 1)) * (h - pad * 2);
+  const pts = (arr) => arr.map((v, i) => `${pad + i * ((w - pad * 2) / (arr.length - 1))},${scale(v)}`).join(" ");
+  return (
+    <svg width={w} height={h} style={{ overflow: "visible" }}>
+      {lastYear && <polyline points={pts(lastYear)} fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="3,3" />}
+      <polyline points={pts(data)} fill="none" stroke={color} strokeWidth="2" />
+      <circle cx={pad + (data.length - 1) * ((w - pad * 2) / (data.length - 1))} cy={scale(data[data.length - 1])} r="3" fill={color} />
+    </svg>
+  );
+};
+
+// ─── Bar chart ─────────────────────────────────────────────────────────────
+const BarChart = ({ data, labels, highlight = [] }) => {
+  const max = Math.max(...data.map(d => Array.isArray(d) ? Math.max(...d) : d));
+  return (
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 80 }}>
+      {data.map((val, i) => {
+        const vals = Array.isArray(val) ? val : [val];
+        return (
+          <div key={i} style={{ flex: 1, display: "flex", alignItems: "flex-end", gap: 2, flexDirection: "row" }}>
+            {vals.map((v, j) => (
+              <div key={j} style={{ flex: 1, height: `${(v / max) * 100}%`, background: j === 0 ? "#3b82f6" : "#cbd5e1", borderRadius: "3px 3px 0 0", minHeight: 3, opacity: highlight[i] ? 1 : 0.8 }} />
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// ─── Tooltip wrapper ───────────────────────────────────────────────────────
+const Tooltip = ({ text, children }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <div style={{ position: "relative", display: "inline-block" }}
+      onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+      {children}
+      {show && (
+        <div style={{ position: "absolute", bottom: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)", background: "#0f172a", color: "white", padding: "6px 10px", borderRadius: 6, fontSize: 12, whiteSpace: "nowrap", zIndex: 999, boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
+          {text}
+          <div style={{ position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", borderWidth: 4, borderStyle: "solid", borderColor: "#0f172a transparent transparent transparent" }} />
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Pages ─────────────────────────────────────────────────────────────────
+
+const VideoPage = ({ navigate }) => (
+  <div>
+    <div style={{ marginBottom: 20 }}>
+      <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>Live Video Feeds</h2>
+      <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Eagle Eye sensor feeds — top-down people tracking with count lines</p>
+    </div>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+      {[1,2,3,4].map(n => (
+        <div key={n} className="video-feed" style={{ height: 220, position: "relative" }}>
+          <div style={{ textAlign: "center" }}>
+            <Icon name="camera" size={32} color="#475569" />
+            <div style={{ marginTop: 8, color: "#94a3b8", fontWeight: 600 }}>Video Feed {n}</div>
+            <div style={{ marginTop: 4, fontSize: 12, color: "#64748b" }}>Eagle Eye Sensor — Store Entrance {n}</div>
+            <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: "center" }}>
+              <span className="badge badge-green">● Live</span>
+              <span className="badge badge-gray">95.2% Accuracy</span>
+            </div>
+          </div>
+          {/* Count line indicator */}
+          <div style={{ position: "absolute", top: "50%", left: "15%", right: "15%", height: 2, background: "#3b82f6", opacity: 0.7 }}>
+            <div style={{ position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)", fontSize: 10, color: "#60a5fa", fontWeight: 600, whiteSpace: "nowrap" }}>COUNT LINE</div>
+          </div>
+        </div>
+      ))}
+    </div>
+    <div className="card" style={{ padding: 16, display: "flex", gap: 24, alignItems: "center" }}>
+      <div style={{ display: "flex", gap: 16 }}>
+        <div style={{ fontSize: 13, color: "#64748b" }}><span style={{ color: "#3b82f6", fontWeight: 700 }}>━</span> Count Line</div>
+        <div style={{ fontSize: 13, color: "#64748b" }}><span style={{ color: "#22c55e", fontWeight: 700 }}>●</span> Person tracked in</div>
+        <div style={{ fontSize: 13, color: "#64748b" }}><span style={{ color: "#f43f5e", fontWeight: 700 }}>●</span> Person tracked out</div>
+      </div>
+      <div style={{ marginLeft: "auto" }}>
+        <button className="btn btn-outline" onClick={() => navigate("operations")}>
+          <Icon name="dashboard" size={14} /> View Dashboard
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+const OperationsDashboard = ({ navigate }) => {
+  const [dateRange, setDateRange] = useState("This Week");
+  const metrics = [
+    { label: "Sales", value: "$142,830", delta: "+3.2%", up: true },
+    { label: "Traffic", value: "8,421", delta: "-1.4%", up: false },
+    { label: "Conversion", value: "28.6%", delta: "+2.1%", up: true },
+    { label: "Avg Transaction", value: "$59.24", delta: "+4.8%", up: true },
+    { label: "Shopper Yield", value: "$16.96", delta: "+5.7%", up: true },
+    { label: "UPT", value: "2.3", delta: "-0.2%", up: false },
+  ];
+  const stores = [
+    { name: "Fashion Ave", region: "Northeast", conv: 34.2, traffic: 2210 },
+    { name: "Market Street", region: "West", conv: 31.8, traffic: 1890 },
+    { name: "Harbor Walk", region: "South", conv: 27.4, traffic: 1640 },
+    { name: "Downtown Core", region: "Midwest", conv: 25.1, traffic: 1480 },
+    { name: "Lakeside Mall", region: "Midwest", conv: 22.8, traffic: 1201 },
+  ];
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>Operations Dashboard</h2>
+          <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Live store performance overview</p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {["Today","Yesterday","This Week","This Month"].map(r => (
+            <button key={r} className={`btn ${dateRange === r ? "btn-primary" : "btn-outline"}`} style={{ padding: "6px 12px", fontSize: 13 }}
+              onClick={() => setDateRange(r)}>{r}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 12, marginBottom: 20 }}>
+        {metrics.map(m => (
+          <div key={m.label} className="metric-card">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+              <div className="metric-label">{m.label}</div>
+              <Tooltip text={`${m.label}: change vs. same period last year`}>
+                <span style={{ fontSize: 11, color: "#94a3b8", cursor: "help" }}>?</span>
+              </Tooltip>
+            </div>
+            <div className="metric-value" style={{ fontSize: 22 }}>{m.value}</div>
+            <div className={m.up ? "metric-delta-green" : "metric-delta-red"}>
+              {m.up ? "▲" : "▼"} {m.delta} vs LY
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16, marginBottom: 16 }}>
+        {/* Sparklines */}
+        <div className="card">
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: "#0f172a" }}>Weekly Trend vs Last Year</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+            {[
+              { label: "Traffic", data: [7200,7800,8100,7600,8421,8200,8500], ly: [7100,7400,7900,7800,8550,8400,8600] },
+              { label: "Conversion", data: [26,27,28,27.5,28.6,28,29], ly: [25,26,27,27,26.5,27,28] },
+              { label: "Sales ($k)", data: [128,134,138,131,142,138,145], ly: [125,130,135,133,138,136,142] },
+            ].map(s => (
+              <div key={s.label}>
+                <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>{s.label}</div>
+                <SparkLine data={s.data} lastYear={s.ly} />
+                <div style={{ display: "flex", gap: 8, marginTop: 4, fontSize: 11 }}>
+                  <span style={{ color: "#3b82f6" }}>— This period</span>
+                  <span style={{ color: "#94a3b8" }}>- - Last year</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Store Hierarchy */}
+        <div className="card">
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: "#0f172a" }}>Store Hierarchy</div>
+          {["All Regions","Northeast","West","South","Midwest"].map(r => (
+            <div key={r} style={{ padding: "6px 8px", borderRadius: 4, fontSize: 13, cursor: "pointer", color: r === "All Regions" ? "#1d4ed8" : "#374151", background: r === "All Regions" ? "#dbeafe" : "transparent", marginBottom: 2 }}
+              onClick={() => {}}>
+              {r !== "All Regions" && <span style={{ marginRight: 8, color: "#94a3b8" }}>▸</span>}{r}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Top/Bottom stores */}
+      <div className="card">
+        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: "#0f172a" }}>Conversion by Store — Top 5</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {stores.map((s, i) => (
+            <div key={s.name} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 24, fontSize: 13, color: "#94a3b8", fontWeight: 600 }}>#{i+1}</div>
+              <div style={{ width: 140, fontSize: 13, color: "#0f172a" }}>{s.name}</div>
+              <div style={{ flex: 1, height: 20, background: "#f1f5f9", borderRadius: 4, overflow: "hidden" }}>
+                <div style={{ width: `${(s.conv / 40) * 100}%`, height: "100%", background: i < 3 ? "#3b82f6" : "#94a3b8", borderRadius: 4, display: "flex", alignItems: "center", paddingLeft: 6 }}>
+                  <span style={{ fontSize: 11, color: "white", fontWeight: 600 }}>{s.conv}%</span>
+                </div>
+              </div>
+              <div style={{ width: 80, fontSize: 12, color: "#64748b", textAlign: "right" }}>{s.traffic.toLocaleString()} visitors</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TrafficDashboard = () => {
+  const [compare, setCompare] = useState("Last Year");
+  const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const thisWeek = [1240,1180,1350,1420,1680,2210,1890];
+  const lastWeek = [1100,1050,1280,1360,1600,2100,1750];
+  const lastYearW = [1280,1210,1390,1450,1720,2280,1940];
+  const ly = compare === "Last Week" ? lastWeek : lastYearW;
+  const locations = [
+    { name: "Fashion Ave", current: [1240,1180,1350,1420,1680,2210,1890], ly: [1280,1210,1390,1450,1720,2280,1940], status: "above" },
+    { name: "Market Street", current: [890,840,920,980,1120,1560,1320], ly: [1050,990,1080,1150,1310,1820,1550], status: "below" },
+    { name: "Harbor Walk", current: [640,610,680,720,850,1180,980], ly: [620,590,660,700,820,1140,950], status: "above" },
+  ];
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>Traffic Dashboard</h2>
+          <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Live footfall data across your estate</p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <span style={{ fontSize: 13, color: "#64748b", alignSelf: "center" }}>Compare to:</span>
+          {["Last Week","Last Year","Last Last Year"].map(c => (
+            <button key={c} className={`btn ${compare === c ? "btn-primary" : "btn-outline"}`} style={{ padding: "6px 12px", fontSize: 13 }}
+              onClick={() => setCompare(c)}>{c}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Top KPI strip */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 }}>
+        {[
+          { label: "Traffic Today", value: "1,842", delta: "+2.1%", up: true },
+          { label: "Traffic Yesterday", value: "8,421", delta: "-1.4%", up: false },
+          { label: "Traffic This Week", value: "9,760", delta: "+3.2%", up: true },
+          { label: "Capture Rate", value: "18.4%", delta: "+0.8%", up: true },
+        ].map(m => (
+          <div key={m.label} className="metric-card">
+            <div className="metric-label">{m.label}</div>
+            <div className="metric-value" style={{ fontSize: 24 }}>{m.value}</div>
+            <div className={m.up ? "metric-delta-green" : "metric-delta-red"}>{m.up ? "▲" : "▼"} {m.delta} vs LY</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Traffic chart */}
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: "#0f172a" }}>Traffic by Day — This Week</div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 100 }}>
+          {days.map((d, i) => {
+            const maxV = Math.max(...thisWeek, ...ly);
+            return (
+              <div key={d} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                <div style={{ width: "100%", display: "flex", gap: 2, alignItems: "flex-end", height: 80 }}>
+                  <div style={{ flex: 1, background: "#3b82f6", borderRadius: "3px 3px 0 0", height: `${(thisWeek[i]/maxV)*100}%` }} />
+                  <div style={{ flex: 1, background: "#e2e8f0", borderRadius: "3px 3px 0 0", height: `${(ly[i]/maxV)*100}%` }} />
+                </div>
+                <div style={{ fontSize: 11, color: "#94a3b8" }}>{d}</div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display: "flex", gap: 16, marginTop: 8, fontSize: 12 }}>
+          <span><span style={{ color: "#3b82f6" }}>■</span> This Week</span>
+          <span><span style={{ color: "#cbd5e1" }}>■</span> {compare}</span>
+        </div>
+      </div>
+
+      {/* Traffic by location */}
+      <div className="card">
+        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: "#0f172a" }}>Traffic by Location</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {locations.map(loc => (
+            <div key={loc.name}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{loc.name}</span>
+                <span className={`badge ${loc.status === "above" ? "badge-green" : "badge-red"}`}>
+                  {loc.status === "above" ? "▲ Above LY" : "▼ Below LY"}
+                </span>
+              </div>
+              <SparkLine data={loc.current} lastYear={loc.ly} color={loc.status === "above" ? "#3b82f6" : "#f43f5e"} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PerformanceDashboard = () => {
+  const [store, setStore] = useState("Fashion Ave");
+  const [week, setWeek] = useState("This Week");
+  const [signals, setSignals] = useState({ weather: true, events: false, promo: false });
+  const toggleSignal = (k) => setSignals(s => ({ ...s, [k]: !s[k] }));
+  const signalLabels = { weather:"🌧 Weather", events:"📅 Local Events", promo:"🏷 Promotions" };
+  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const powerHours = [
+    { hour: "9AM", traffic: 42, isPower: false }, { hour: "10AM", traffic: 68, isPower: false },
+    { hour: "11AM", traffic: 85, isPower: false }, { hour: "12PM", traffic: 124, isPower: true },
+    { hour: "1PM", traffic: 138, isPower: true }, { hour: "2PM", traffic: 131, isPower: true },
+    { hour: "3PM", traffic: 112, isPower: false }, { hour: "4PM", traffic: 98, isPower: false },
+    { hour: "5PM", traffic: 88, isPower: false }, { hour: "6PM", traffic: 72, isPower: false },
+    { hour: "7PM", traffic: 54, isPower: false }, { hour: "8PM", traffic: 38, isPower: false },
+  ];
+  const maxT = Math.max(...powerHours.map(h => h.traffic));
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>Performance</h2>
+          <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Single-store weekly view vs last year</p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <select className="select" value={store} onChange={e => setStore(e.target.value)}>
+            {["Fashion Ave","Market Street","Harbor Walk","Downtown Core","Lakeside Mall"].map(s => <option key={s}>{s}</option>)}
+          </select>
+          <select className="select" value={week} onChange={e => setWeek(e.target.value)}>
+            {["This Week","Last Week","Two Weeks Ago"].map(w => <option key={w}>{w}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 }}>
+        {[
+          { label: "Sales", thisW: "$28,410", delta: "-4.2%", up: false, data: [4200,3800,4100,3600,4500,5800,6400], ly: [4800,4100,4500,4200,4700,6200,7000] },
+          { label: "Conversion", thisW: "31.2%", delta: "+2.8%", up: true, data: [28,29,30,28,31,33,34], ly: [27,28,29,27,30,31,32] },
+          { label: "Avg Transaction", thisW: "$62.40", delta: "+5.1%", up: true, data: [58,59,61,57,63,65,66], ly: [55,57,59,56,60,62,64] },
+        ].map(m => (
+          <div key={m.label} className="metric-card">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+              <div className="metric-label">{m.label}</div>
+              <div className={m.up ? "metric-delta-green" : "metric-delta-red"}>{m.up ? "▲" : "▼"} {m.delta} vs LY</div>
+            </div>
+            <div className="metric-value" style={{ fontSize: 22, marginBottom: 8 }}>{m.thisW}</div>
+            <SparkLine data={m.data} lastYear={m.ly} color={m.up ? "#3b82f6" : "#f43f5e"} />
+            <div style={{ display: "flex", gap: 8, marginTop: 4, fontSize: 11, color: "#94a3b8" }}>
+              <span style={{ color: m.up ? "#3b82f6" : "#f43f5e" }}>— This week</span>
+              <span>— Last year</span>
+            </div>
+          </div>
+        ))}
+        {/* Revenue at risk card */}
+        <div className="metric-card" style={{ border:"1px solid #fecaca", background:"#fef9f9" }}>
+          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"start" }}>
+            <div className="metric-label">Revenue at Risk</div>
+            <Tooltip text="Customers who dwelled 2+ min without associate contact and left without purchasing">
+              <span style={{ fontSize:11,color:"#94a3b8",cursor:"help" }}>?</span>
+            </Tooltip>
+          </div>
+          <div className="metric-value" style={{ fontSize:22,color:"#dc2626" }}>$840</div>
+          <div className="metric-delta-red">▼ 14 uncontacted dwellers today</div>
+        </div>
+      </div>
+
+      {/* Power Hours */}
+      <div className="card">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>Power Hours — Today</div>
+            <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>Green = predicted peak. Staff accordingly.</div>
+          </div>
+          <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
+            {Object.entries(signalLabels).map(([k,label]) => (
+              <button key={k} onClick={() => toggleSignal(k)}
+                style={{ padding:"4px 10px", fontSize:11, fontWeight:600, borderRadius:9999, border:`1px solid ${signals[k]?"#3b82f6":"#e2e8f0"}`, background:signals[k]?"#eff6ff":"white", color:signals[k]?"#1d4ed8":"#64748b", cursor:"pointer" }}>
+                {label}
+              </button>
+            ))}
+            <Tooltip text={`Baseline: 340 · ${signals.weather?"+15% Saturday · −8% rain · ":""}${signals.events?"+5% local event · ":""}${signals.promo?"+22% sale event · ":" "}= ${signals.weather&&signals.promo?"412":signals.weather?"380":"340"} predicted`}>
+              <span style={{ fontSize:13, color:"#64748b", cursor:"help" }}>
+                Predicted: <strong style={{ color:"#0f172a" }}>{signals.weather&&signals.promo?"1,412":signals.weather?"1,380":"1,248"} visitors</strong> ⓘ
+              </span>
+            </Tooltip>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 4, alignItems: "flex-end", height: 100 }}>
+          {powerHours.map(h => (
+            <div key={h.hour} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div style={{ width: "100%", height: 80, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+                <div style={{
+                  width: "100%",
+                  height: `${(h.traffic / maxT) * 100}%`,
+                  background: h.isPower ? "#22c55e" : "#3b82f6",
+                  borderRadius: "3px 3px 0 0",
+                  opacity: h.isPower ? 1 : 0.6,
+                  position: "relative"
+                }}>
+                  {h.isPower && <div style={{ position: "absolute", top: -16, left: "50%", transform: "translateX(-50%)", fontSize: 10, color: "#16a34a", fontWeight: 700, whiteSpace: "nowrap" }}>★ Peak</div>}
+                </div>
+              </div>
+              <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>{h.hour}</div>
+            </div>
+          ))}
+        </div>
+        {/* Diagnostic recommendation engine */}
+        <div style={{ marginTop:16 }}>
+          <div style={{ fontSize:13,fontWeight:600,color:"#0f172a",marginBottom:10 }}>AI Recommendations</div>
+          <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
+            {[
+              { signal:"Response time averaging 3.4 min in Section B", action:"Move 1 associate from stockroom to floor before 2PM", confidence:"High", color:"#dc2626", bg:"#fef2f2", border:"#fecaca" },
+              { signal:"12 customers dwelled 2+ min in accessories without contact", action:"Reposition associate near center fixture — peak dwell window open now", confidence:"High", color:"#d97706", bg:"#fffbeb", border:"#fde68a" },
+              { signal:"Traffic historically +18% on Thursdays vs. Mon–Wed", action:"Schedule 1 extra floor associate Thu 12–3PM", confidence:"Medium", color:"#2563eb", bg:"#eff6ff", border:"#bfdbfe" },
+            ].map((r,i)=>(
+              <div key={i} style={{ padding:"10px 14px",background:r.bg,border:`1px solid ${r.border}`,borderRadius:8,display:"flex",gap:12,alignItems:"flex-start" }}>
+                <div style={{ width:6,borderRadius:3,alignSelf:"stretch",background:r.color,flexShrink:0 }}/>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:11,color:"#64748b",marginBottom:2 }}>Signal: {r.signal}</div>
+                  <div style={{ fontSize:13,fontWeight:600,color:"#0f172a" }}>→ {r.action}</div>
+                </div>
+                <span style={{ fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:9999,background:r.color,color:"white",flexShrink:0 }}>{r.confidence}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Coaching moments */}
+        <div style={{ marginTop:16 }}>
+          <div style={{ fontSize:13,fontWeight:600,color:"#0f172a",marginBottom:8 }}>Coaching Moments</div>
+          <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
+            {[
+              { time:"Tue 2–3PM", event:"Response time spike — 3.4 min avg", metric:"vs. 1.8 min baseline" },
+              { time:"Mon 12–1PM", event:"Associate coverage gap — Zone 3", metric:"8 uncontacted dwellers" },
+            ].map((c,i)=>(
+              <div key={i} style={{ display:"flex",alignItems:"center",gap:12,padding:"8px 12px",background:"#f8fafc",borderRadius:6,border:"1px solid #e2e8f0" }}>
+                <div style={{ fontSize:11,color:"#64748b",width:90,flexShrink:0 }}>{c.time}</div>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:12,fontWeight:600,color:"#0f172a" }}>{c.event}</div>
+                  <div style={{ fontSize:11,color:"#64748b" }}>{c.metric}</div>
+                </div>
+                <button className="btn btn-outline" style={{ fontSize:11,padding:"4px 10px",display:"flex",alignItems:"center",gap:4 }}>
+                  🎥 Pull clip
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const OptimizationDashboard = () => {
+  const [metric, setMetric] = useState("Traffic");
+  const [view, setView] = useState("Actual");
+  const [hours, setHours] = useState("240");
+  const [showExclusion, setShowExclusion] = useState(false);
+  const [excl, setExcl] = useState({ uwb: false, schedule: false, dwell: true, reentry: true, dwellMins: 45, sessionWin: "60" });
+  const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const times = ["9AM","10AM","11AM","12PM","1PM","2PM","3PM","4PM","5PM","6PM","7PM","8PM"];
+  // Heatmap intensity data
+  const heatData = {
+    Traffic: [
+      [30,45,60,75,80,85,70],[25,40,55,80,90,95,85],[20,35,50,85,95,100,90],
+      [35,50,65,90,100,98,95],[30,45,60,85,95,90,88],[25,40,55,80,88,85,80],
+      [20,30,45,70,75,80,72],[15,25,40,60,65,68,62],[20,30,45,55,60,62,58],
+      [25,35,48,52,55,58,54],[18,24,36,40,42,45,40],[10,15,22,28,30,32,28],
+    ],
+    "Conversion Rate": [
+      [38,35,32,28,25,22,26],[40,38,34,30,27,24,28],[42,40,36,32,29,26,30],
+      [44,42,38,34,31,28,32],[46,44,40,36,33,30,34],[44,42,38,34,31,28,32],
+      [42,40,36,32,29,26,30],[40,38,34,30,27,24,28],[38,35,32,28,25,22,26],
+      [36,33,30,26,23,20,24],[34,31,28,24,21,18,22],[32,29,26,22,19,16,20],
+    ],
+  };
+  const data = heatData[metric] || heatData["Traffic"];
+  const allVals = data.flat();
+  const minV = Math.min(...allVals), maxV = Math.max(...allVals);
+  const intensity = (v) => (v - minV) / (maxV - minV || 1);
+  const cellColor = (v) => {
+    const i = intensity(v);
+    if (metric === "Conversion Rate") {
+      return `rgba(34,197,94,${0.1 + i * 0.85})`;
+    }
+    return `rgba(59,130,246,${0.1 + i * 0.85})`;
+  };
+
+  const staffPlan = [
+    [2,3,3,4,4,5,4],[3,3,4,5,5,6,5],[3,4,4,5,5,6,5],
+    [4,4,5,6,6,7,6],[3,4,4,5,5,6,5],[3,3,4,5,5,5,5],
+    [2,3,3,4,4,5,4],[2,2,3,3,4,4,3],[2,2,3,3,3,4,3],
+    [2,2,2,3,3,3,3],[1,2,2,2,2,3,2],[1,1,2,2,2,2,2],
+  ];
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>Optimization</h2>
+          <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Past performance heatmap + staff planning (45-day forecast)</p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {["Traffic","Conversion Rate"].map(m => (
+            <button key={m} className={`btn ${metric === m ? "btn-primary" : "btn-outline"}`} style={{ padding: "6px 12px", fontSize: 13 }}
+              onClick={() => setMetric(m)}>{m}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Employee Exclusion Panel */}
+      <div style={{ marginBottom:16, border:"1px solid #e2e8f0", borderRadius:8, overflow:"hidden" }}>
+        <div onClick={()=>setShowExclusion(v=>!v)}
+          style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 16px", background:showExclusion?"#f8fafc":"white", cursor:"pointer" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <Icon name="user" size={15} color="#64748b"/>
+            <span style={{ fontSize:13, fontWeight:600, color:"#0f172a" }}>Employee Exclusion Settings</span>
+            <span className="badge badge-green" style={{ fontSize:10 }}>
+              {[excl.uwb,excl.schedule,excl.dwell].filter(Boolean).length} method{[excl.uwb,excl.schedule,excl.dwell].filter(Boolean).length!==1?"s":""} active
+            </span>
+          </div>
+          <Icon name={showExclusion?"chevronDown":"chevronRight"} size={14} color="#64748b"/>
+        </div>
+        {showExclusion && (
+          <div style={{ padding:16, borderTop:"1px solid #e2e8f0", background:"white" }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16, marginBottom:16 }}>
+              {[
+                { key:"uwb", label:"UWB Badge", badge:"Beta", desc:"Employees carry a tag — excluded in real time" },
+                { key:"schedule", label:"Shift Schedule Import", badge:null, desc:"Upload roster; clocked-in staff auto-flagged" },
+                { key:"dwell", label:"Dwell Heuristic", badge:null, desc:"Presence >{excl.dwellMins} min flagged as probable employee" },
+              ].map(m=>(
+                <div key={m.key} style={{ padding:12, border:`1px solid ${excl[m.key]?"#93c5fd":"#e2e8f0"}`, borderRadius:8, background:excl[m.key]?"#eff6ff":"#f8fafc" }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                    <span style={{ fontSize:12, fontWeight:600, color:"#0f172a" }}>{m.label}</span>
+                    <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+                      {m.badge && <span className="badge badge-blue" style={{ fontSize:9 }}>{m.badge}</span>}
+                      <label style={{ position:"relative", width:32, height:18, cursor:"pointer" }}>
+                        <input type="checkbox" checked={excl[m.key]} onChange={()=>setExcl(s=>({...s,[m.key]:!s[m.key]}))} style={{ opacity:0, width:0, height:0 }}/>
+                        <div style={{ position:"absolute", inset:0, borderRadius:9999, background:excl[m.key]?"#3b82f6":"#cbd5e1", transition:"background 0.2s" }}>
+                          <div style={{ position:"absolute", top:2, left:excl[m.key]?14:2, width:14, height:14, borderRadius:"50%", background:"white", transition:"left 0.2s" }}/>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                  <div style={{ fontSize:11, color:"#64748b" }}>{m.key==="dwell"?`Presence >${excl.dwellMins} min flagged as probable employee`:m.desc}</div>
+                  {m.key==="uwb"&&excl.uwb&&(
+                    <div style={{ marginTop:8, padding:"6px 8px", background:"#fef9c3", borderRadius:4, fontSize:11, color:"#854d0e" }}>
+                      ⚡ 4 badges registered at Fashion Ave
+                    </div>
+                  )}
+                  {m.key==="schedule"&&excl.schedule&&(
+                    <button className="btn btn-outline" style={{ fontSize:11, padding:"4px 8px", marginTop:8, width:"100%" }}>
+                      + Import roster CSV
+                    </button>
+                  )}
+                  {m.key==="dwell"&&excl.dwell&&(
+                    <div style={{ marginTop:8, display:"flex", alignItems:"center", gap:8 }}>
+                      <input type="range" min={15} max={90} value={excl.dwellMins} onChange={e=>setExcl(s=>({...s,dwellMins:+e.target.value}))} style={{ flex:1 }}/>
+                      <span style={{ fontSize:11, fontWeight:600, color:"#0f172a", width:40 }}>{excl.dwellMins} min</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div style={{ display:"flex", alignItems:"center", gap:16, padding:"10px 14px", background:"#f8fafc", borderRadius:8 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <Icon name="filter" size={13} color="#64748b"/>
+                <span style={{ fontSize:12, color:"#64748b" }}>Re-entry deduplication</span>
+                <label style={{ position:"relative", width:32, height:18, cursor:"pointer" }}>
+                  <input type="checkbox" checked={excl.reentry} onChange={()=>setExcl(s=>({...s,reentry:!s.reentry}))} style={{ opacity:0, width:0, height:0 }}/>
+                  <div style={{ position:"absolute", inset:0, borderRadius:9999, background:excl.reentry?"#3b82f6":"#cbd5e1" }}>
+                    <div style={{ position:"absolute", top:2, left:excl.reentry?14:2, width:14, height:14, borderRadius:"50%", background:"white" }}/>
+                  </div>
+                </label>
+              </div>
+              <span style={{ fontSize:12, color:"#64748b" }}>Session window:</span>
+              {["30","60","90"].map(w=>(
+                <button key={w} onClick={()=>setExcl(s=>({...s,sessionWin:w}))}
+                  className={`btn ${excl.sessionWin===w?"btn-primary":"btn-outline"}`} style={{ padding:"4px 10px", fontSize:11 }}>{w} min</button>
+              ))}
+              {excl.reentry && <span style={{ fontSize:11, color:"#16a34a", marginLeft:"auto" }}>~6.2% traffic reclassified</span>}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        {/* Past heatmap */}
+        <div className="card">
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: "#0f172a" }}>Last Week — {metric}</div>
+          <div style={{ display: "grid", gridTemplateColumns: `60px repeat(7,1fr)`, gap: 2 }}>
+            <div />
+            {days.map(d => <div key={d} style={{ fontSize: 11, color: "#94a3b8", textAlign: "center", fontWeight: 600 }}>{d}</div>)}
+            {times.map((t, ti) => (
+              <React.Fragment key={t}>
+                <div style={{ fontSize: 10, color: "#94a3b8", paddingRight: 4, textAlign: "right", alignSelf: "center" }}>{t}</div>
+                {days.map((d, di) => (
+                  <div key={d} className="heatmap-cell" style={{ height: 22, background: cellColor(data[ti][di]), borderRadius: 3 }} title={`${d} ${t}: ${data[ti][di]}${metric === "Conversion Rate" ? "%" : ""}`} />
+                ))}
+              </React.Fragment>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "center", fontSize: 11, color: "#94a3b8" }}>
+            <span>Low</span>
+            {[0.1,0.3,0.5,0.7,0.9].map(i => (
+              <div key={i} style={{ width: 20, height: 12, borderRadius: 2, background: metric === "Conversion Rate" ? `rgba(34,197,94,${i})` : `rgba(59,130,246,${i})` }} />
+            ))}
+            <span>High</span>
+          </div>
+        </div>
+
+        {/* Staff planning */}
+        <div className="card">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>Staff Planning — {view === "Actual" ? "Predicted Traffic" : "Labor Hours"}</div>
+              <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>Up to 45 days ahead</div>
+            </div>
+            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              {["Actual","Labor Hours"].map(v => (
+                <button key={v} className={`btn ${view === v ? "btn-primary" : "btn-outline"}`} style={{ padding: "4px 10px", fontSize: 12 }}
+                  onClick={() => setView(v)}>{v}</button>
+              ))}
+            </div>
+          </div>
+          {view === "Labor Hours" && (
+            <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12, padding: "8px 10px", background: "#f8fafc", borderRadius: 6 }}>
+              <span style={{ fontSize: 13, color: "#64748b" }}>Weekly hours budget:</span>
+              <input className="input" style={{ width: 80 }} value={hours} onChange={e => setHours(e.target.value)} />
+              <button className="btn btn-outline" style={{ padding: "6px 10px", fontSize: 12 }}>Apply</button>
+            </div>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: `60px repeat(7,1fr)`, gap: 2 }}>
+            <div />
+            {days.map(d => <div key={d} style={{ fontSize: 11, color: "#94a3b8", textAlign: "center", fontWeight: 600 }}>{d}</div>)}
+            {times.map((t, ti) => (
+              <React.Fragment key={t}>
+                <div style={{ fontSize: 10, color: "#94a3b8", paddingRight: 4, textAlign: "right", alignSelf: "center" }}>{t}</div>
+                {days.map((d, di) => {
+                  const staff = staffPlan[ti][di];
+                  const bg = staff >= 6 ? "#1d4ed8" : staff >= 5 ? "#3b82f6" : staff >= 4 ? "#93c5fd" : staff >= 3 ? "#bfdbfe" : "#dbeafe";
+                  return <div key={d} className="heatmap-cell" style={{ height: 22, background: bg, borderRadius: 3, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: 9, color: staff >= 5 ? "white" : "#1e3a8a", fontWeight: 600 }}>{staff}</span>
+                  </div>;
+                })}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const BenchmarksDashboard = () => {
+  const [region, setRegion] = useState("US");
+  const [category, setCategory] = useState("Specialty Apparel");
+  const benchmarks = [
+    { month: "Jan", yours: 82, industry: 100 }, { month: "Feb", yours: 88, industry: 95 },
+    { month: "Mar", yours: 95, industry: 105 }, { month: "Apr", yours: 91, industry: 98 },
+    { month: "May", yours: 102, industry: 108 }, { month: "Jun", yours: 98, industry: 103 },
+    { month: "Jul", yours: 105, industry: 110 }, { month: "Aug", yours: 108, industry: 107 },
+    { month: "Sep", yours: 112, industry: 115 }, { month: "Oct", yours: 118, industry: 112 },
+    { month: "Nov", yours: 124, industry: 118 }, { month: "Dec", yours: 130, industry: 125 },
+  ];
+  const maxB = Math.max(...benchmarks.map(b => Math.max(b.yours, b.industry)));
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>Benchmarks</h2>
+          <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Compare your footfall index against industry peers</p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {["US","Europe & Middle East"].map(r => (
+            <button key={r} className={`btn ${region === r ? "btn-primary" : "btn-outline"}`} style={{ padding: "6px 12px", fontSize: 13 }}
+              onClick={() => setRegion(r)}>{r}</button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 16 }}>
+        <div className="card">
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: "#0f172a" }}>Category</div>
+          {["All Retail","Specialty Apparel","Footwear","Home & Garden","Electronics","Luxury"].map(c => (
+            <div key={c} style={{ padding: "7px 8px", borderRadius: 4, fontSize: 13, cursor: "pointer", color: category === c ? "#1d4ed8" : "#374151", background: category === c ? "#dbeafe" : "transparent", marginBottom: 2 }}
+              onClick={() => setCategory(c)}>{c}</div>
+          ))}
+        </div>
+        <div className="card">
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, color: "#0f172a" }}>Footfall Index — {category} ({region})</div>
+          <div style={{ fontSize: 12, color: "#64748b", marginBottom: 16 }}>Index 100 = same period baseline. Your stores vs. industry average.</div>
+          <div style={{ display: "flex", gap: 6, alignItems: "flex-end", height: 160 }}>
+            {benchmarks.map(b => (
+              <div key={b.month} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div style={{ width: "100%", display: "flex", gap: 2, alignItems: "flex-end", height: 130 }}>
+                  <div style={{ flex: 1, background: "#3b82f6", borderRadius: "3px 3px 0 0", height: `${(b.yours/maxB)*100}%` }} title={`Your stores: ${b.yours}`} />
+                  <div style={{ flex: 1, background: "#e2e8f0", borderRadius: "3px 3px 0 0", height: `${(b.industry/maxB)*100}%` }} title={`Industry: ${b.industry}`} />
+                </div>
+                <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>{b.month}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 24, marginTop: 12 }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div style={{ width: 12, height: 12, background: "#3b82f6", borderRadius: 2 }} />
+              <span style={{ fontSize: 12, color: "#64748b" }}>Your Stores</span>
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div style={{ width: 12, height: 12, background: "#e2e8f0", borderRadius: 2 }} />
+              <span style={{ fontSize: 12, color: "#64748b" }}>Industry Average</span>
+            </div>
+          </div>
+          <div style={{ marginTop: 16, padding: "12px 14px", background: "#f0f9ff", borderRadius: 6, border: "1px solid #bae6fd", fontSize: 13, color: "#0369a1" }}>
+            <strong>Nov–Dec:</strong> Your stores outperformed the {category} industry average by 5–6 index points. Strong holiday season execution.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AnalyticsPage = () => {
+  const [groupBy, setGroupBy] = useState(["Date"]);
+  const [chartType, setChartType] = useState("Table");
+  const [savedViews] = useState(["Monday Morning Check","Holiday Comparison","Store vs Region"]);
+  const [selectedView, setSelectedView] = useState(null);
+  const [dates, setDates] = useState([{ label: "Nov 2025", value: "2025-11-01/2025-11-30" }, { label: "Nov 2024", value: "2024-11-01/2024-11-30" }]);
+  const [metrics, setMetrics] = useState(["Traffic","Conversion","Sales"]);
+  const [stores, setStores] = useState(["Fashion Ave","Market Street"]);
+  const allMetrics = ["Traffic","Conversion","Sales","Avg Transaction","UPT","Shopper Yield","Capture Rate"];
+  const tableData = [
+    { date: "Nov 2025", store: "Fashion Ave", traffic: "12,840", conversion: "33.2%", sales: "$84,214" },
+    { date: "Nov 2025", store: "Market Street", traffic: "9,210", conversion: "28.6%", sales: "$52,480" },
+    { date: "Nov 2024", store: "Fashion Ave", traffic: "13,120", conversion: "31.8%", sales: "$82,100" },
+    { date: "Nov 2024", store: "Market Street", traffic: "9,650", conversion: "27.4%", sales: "$51,200" },
+  ];
+
+  const toggleGroupBy = (g) => setGroupBy(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g]);
+  const toggleMetric = (m) => setMetrics(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m]);
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>Analytics</h2>
+          <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Build custom data sets with flexible filters</p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <select className="select" value={selectedView || ""} onChange={e => setSelectedView(e.target.value || null)}>
+            <option value="">Saved Views...</option>
+            {savedViews.map(v => <option key={v}>{v}</option>)}
+          </select>
+          <button className="btn btn-outline"><Icon name="save" size={14} /> Save View</button>
+          <button className="btn btn-outline"><Icon name="download" size={14} /> Export Excel</button>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "260px 1fr", gap: 16 }}>
+        {/* Filter panel */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div className="card">
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: "#0f172a" }}>Output Type</div>
+            {["Table","Bar Chart","Line Chart"].map(t => (
+              <div key={t} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, cursor: "pointer" }} onClick={() => setChartType(t)}>
+                <div style={{ width: 16, height: 16, borderRadius: "50%", border: `2px solid ${chartType === t ? "#3b82f6" : "#e2e8f0"}`, background: chartType === t ? "#3b82f6" : "white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {chartType === t && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "white" }} />}
+                </div>
+                <span style={{ fontSize: 13, color: "#374151" }}>{t}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="card">
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: "#0f172a" }}>Locations</div>
+            {["Fashion Ave","Market Street","Harbor Walk","Downtown Core"].map(s => (
+              <label key={s} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, cursor: "pointer" }}>
+                <input type="checkbox" className="checkbox" checked={stores.includes(s)} onChange={() => setStores(prev => prev.includes(s) ? prev.filter(x=>x!==s) : [...prev,s])} />
+                <span style={{ fontSize: 13, color: "#374151" }}>{s}</span>
+              </label>
+            ))}
+          </div>
+
+          <div className="card">
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: "#0f172a" }}>Metrics</div>
+            {allMetrics.map(m => (
+              <label key={m} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, cursor: "pointer" }}>
+                <input type="checkbox" className="checkbox" checked={metrics.includes(m)} onChange={() => toggleMetric(m)} />
+                <span style={{ fontSize: 13, color: "#374151" }}>{m}</span>
+              </label>
+            ))}
+          </div>
+
+          <div className="card">
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: "#0f172a" }}>Date Ranges</div>
+            {dates.map((d, i) => (
+              <div key={i} style={{ display: "flex", gap: 6, marginBottom: 6, alignItems: "center" }}>
+                <input className="input" value={d.label} style={{ flex: 1, fontSize: 12, padding: "5px 8px" }} readOnly />
+                <button className="btn btn-ghost" style={{ padding: 4 }} onClick={() => setDates(prev => prev.filter((_,j) => j!==i))}><Icon name="x" size={12} /></button>
+              </div>
+            ))}
+            <button className="btn btn-outline" style={{ width: "100%", fontSize: 12, padding: "6px 0" }} onClick={() => setDates(prev => [...prev, { label: "Nov 2023", value: "" }])}>
+              <Icon name="plus" size={12} /> Add Date Range
+            </button>
+          </div>
+
+          <div className="card">
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: "#0f172a" }}>Group By</div>
+            {["Date","Store","Day of Week","Time","Region"].map(g => (
+              <label key={g} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, cursor: "pointer" }}>
+                <input type="checkbox" className="checkbox" checked={groupBy.includes(g)} onChange={() => toggleGroupBy(g)} />
+                <span style={{ fontSize: 13, color: "#374151" }}>{g}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Results */}
+        <div>
+          <div className="card">
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: "#0f172a" }}>
+              Results — {groupBy.join(", ")} {chartType !== "Table" && `(${chartType})`}
+            </div>
+            {chartType === "Table" ? (
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ borderBottom: "2px solid #e2e8f0" }}>
+                    {groupBy.includes("Date") && <th style={{ textAlign: "left", padding: "8px 12px", color: "#64748b", fontWeight: 600 }}>Date</th>}
+                    {groupBy.includes("Store") && <th style={{ textAlign: "left", padding: "8px 12px", color: "#64748b", fontWeight: 600 }}>Store</th>}
+                    {metrics.includes("Traffic") && <th style={{ textAlign: "right", padding: "8px 12px", color: "#64748b", fontWeight: 600 }}>Traffic</th>}
+                    {metrics.includes("Conversion") && <th style={{ textAlign: "right", padding: "8px 12px", color: "#64748b", fontWeight: 600 }}>Conversion</th>}
+                    {metrics.includes("Sales") && <th style={{ textAlign: "right", padding: "8px 12px", color: "#64748b", fontWeight: 600 }}>Sales</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {tableData.filter(r => stores.includes(r.store)).map((r, i) => (
+                    <tr key={i} className="table-row" style={{ borderBottom: "1px solid #f1f5f9" }}>
+                      {groupBy.includes("Date") && <td style={{ padding: "8px 12px", color: "#374151" }}>{r.date}</td>}
+                      {groupBy.includes("Store") && <td style={{ padding: "8px 12px", color: "#374151" }}>{r.store}</td>}
+                      {metrics.includes("Traffic") && <td style={{ padding: "8px 12px", textAlign: "right", color: "#0f172a" }}>{r.traffic}</td>}
+                      {metrics.includes("Conversion") && <td style={{ padding: "8px 12px", textAlign: "right", color: "#0f172a" }}>{r.conversion}</td>}
+                      {metrics.includes("Sales") && <td style={{ padding: "8px 12px", textAlign: "right", color: "#0f172a" }}>{r.sales}</td>}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>
+                <Icon name="analytics" size={48} color="#e2e8f0" />
+                <div style={{ marginTop: 12, fontSize: 14 }}>{chartType} visualization</div>
+                <div style={{ fontSize: 12 }}>Apply filters and click a view to populate</div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ReportsPage = () => {
+  const [reports] = useState([
+    { name: "Weekly Traffic Summary", type: "Traffic", format: "Excel", freq: "Weekly", stores: "All", status: "Active", nextRun: "Mon 6:00 AM" },
+    { name: "Monthly Performance", type: "Performance", format: "PDF", freq: "Monthly", stores: "Northeast", status: "Active", nextRun: "Dec 1, 6:00 AM" },
+    { name: "Health Monitoring Alert", type: "Health", format: "PDF", freq: "Weekly", stores: "All", status: "Active", nextRun: "Sun 7:00 AM" },
+    { name: "Holiday Benchmark Report", type: "Benchmark", format: "PDF", freq: "One-time", stores: "All", status: "Scheduled", nextRun: "Dec 26, 8:00 AM" },
+  ]);
+  const [showNew, setShowNew] = useState(false);
+  const [newReport, setNewReport] = useState({ name: "", type: "Traffic", format: "PDF", freq: "Weekly", email: "" });
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>Reports</h2>
+          <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Schedule automated reports delivered to your inbox</p>
+        </div>
+        <button className="btn btn-primary" onClick={() => setShowNew(!showNew)}>
+          <Icon name="plus" size={14} /> New Report
+        </button>
+      </div>
+
+      {showNew && (
+        <div className="card" style={{ marginBottom: 16, border: "1px solid #bae6fd", background: "#f0f9ff" }}>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 14, color: "#0f172a" }}>Create New Report</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
+            <div>
+              <label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Report Name</label>
+              <input className="input" placeholder="e.g. Weekly Traffic Summary" value={newReport.name} onChange={e => setNewReport({...newReport, name: e.target.value})} />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Report Type</label>
+              <select className="select" style={{ width: "100%" }} value={newReport.type} onChange={e => setNewReport({...newReport, type: e.target.value})}>
+                {["Traffic","Performance","Benchmarks","Health Monitoring","Conversion","Analytics"].map(t => <option key={t}>{t}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Format</label>
+              <select className="select" style={{ width: "100%" }} value={newReport.format} onChange={e => setNewReport({...newReport, format: e.target.value})}>
+                <option>PDF</option><option>Excel</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Frequency</label>
+              <select className="select" style={{ width: "100%" }} value={newReport.freq} onChange={e => setNewReport({...newReport, freq: e.target.value})}>
+                {["Daily","Weekly","Monthly","One-time"].map(f => <option key={f}>{f}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Send To (email)</label>
+              <input className="input" placeholder="manager@store.com" value={newReport.email} onChange={e => setNewReport({...newReport, email: e.target.value})} />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Locations</label>
+              <select className="select" style={{ width: "100%" }}>
+                <option>All Stores</option><option>Northeast</option><option>West</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="btn btn-primary" onClick={() => setShowNew(false)}>Generate Report</button>
+            <button className="btn btn-outline" onClick={() => setShowNew(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      <div className="card">
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead>
+            <tr style={{ borderBottom: "2px solid #e2e8f0" }}>
+              {["Report Name","Type","Format","Frequency","Stores","Status","Next Run",""].map(h => (
+                <th key={h} style={{ textAlign: "left", padding: "8px 12px", color: "#64748b", fontWeight: 600, fontSize: 12 }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {reports.map((r, i) => (
+              <tr key={i} className="table-row" style={{ borderBottom: "1px solid #f1f5f9" }}>
+                <td style={{ padding: "10px 12px", color: "#0f172a", fontWeight: 500 }}>{r.name}</td>
+                <td style={{ padding: "10px 12px" }}><span className="badge badge-blue">{r.type}</span></td>
+                <td style={{ padding: "10px 12px", color: "#374151" }}>{r.format}</td>
+                <td style={{ padding: "10px 12px", color: "#374151" }}>{r.freq}</td>
+                <td style={{ padding: "10px 12px", color: "#374151" }}>{r.stores}</td>
+                <td style={{ padding: "10px 12px" }}>
+                  <span className={`badge ${r.status === "Active" ? "badge-green" : "badge-gray"}`}>{r.status}</span>
+                </td>
+                <td style={{ padding: "10px 12px", color: "#64748b", fontSize: 12 }}>{r.nextRun}</td>
+                <td style={{ padding: "10px 12px" }}>
+                  <button className="btn btn-ghost" style={{ padding: "4px 8px", fontSize: 12 }}><Icon name="edit" size={12} /> Edit</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// ─── Admin: Employee Exclusion ────────────────────────────────────────────
+const AdminEmployeeExclusion = () => {
+  const stores = ["Fashion Ave","Market Street","Harbor Walk","Downtown Core","Lakeside Mall"];
+  const [sel, setSel] = useState("Fashion Ave");
+  const methods = [
+    { name:"UWB Badge", status:"Beta", active:true, detail:"4 badges registered" },
+    { name:"Shift Schedule Import", status:"Active", active:true, detail:"Last sync: Today 6:00 AM" },
+    { name:"Dwell Heuristic", status:"Active", active:true, detail:"Threshold: 45 min" },
+    { name:"Re-entry Deduplication", status:"Active", active:true, detail:"Session window: 60 min · ~6.2% reclassified" },
+  ];
+  return (
+    <div style={{ display:"grid", gridTemplateColumns:"200px 1fr", gap:16 }}>
+      <div className="card">
+        <div style={{ fontSize:13,fontWeight:600,marginBottom:10,color:"#0f172a" }}>Stores</div>
+        {stores.map(s=>(
+          <div key={s} onClick={()=>setSel(s)}
+            style={{ padding:"6px 8px",borderRadius:4,fontSize:13,cursor:"pointer",marginBottom:2,
+              background:sel===s?"#dbeafe":"transparent",color:sel===s?"#1d4ed8":"#374151" }}>{s}</div>
+        ))}
+      </div>
+      <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
+        <div className="card">
+          <div style={{ fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:12 }}>Exclusion Methods — {sel}</div>
+          {methods.map(m=>(
+            <div key={m.name} style={{ display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:"1px solid #f1f5f9" }}>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:13,fontWeight:600,color:"#0f172a" }}>{m.name}</div>
+                <div style={{ fontSize:11,color:"#64748b",marginTop:2 }}>{m.detail}</div>
+              </div>
+              <span className={`badge ${m.status==="Beta"?"badge-blue":"badge-green"}`}>{m.status}</span>
+            </div>
+          ))}
+        </div>
+        <div className="card" style={{ background:"#f0f9ff",border:"1px solid #bae6fd" }}>
+          <div style={{ fontSize:13,fontWeight:600,color:"#0369a1",marginBottom:6 }}>Accuracy Impact</div>
+          <div style={{ fontSize:12,color:"#374151" }}>With all methods active: <strong>±2.8% employee exclusion confidence</strong> · displayed on all metric cards</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Admin: Integrations ──────────────────────────────────────────────────
+const AdminIntegrations = () => {
+  const wfp = [
+    { name:"UKG Dimensions", status:"Connected", sync:"Today 6:05 AM", logo:"UKG" },
+    { name:"Kronos Workforce Central", status:"Available", sync:"—", logo:"KRO" },
+    { name:"Blue Yonder WFM", status:"Available", sync:"—", logo:"BY" },
+    { name:"Workday HCM", status:"Coming Soon", sync:"—", logo:"WD" },
+  ];
+  const [apiUrl, setApiUrl] = useState("https://api.yourcompany.com/retail/traffic");
+  const [cadence, setCadence] = useState("15-min");
+  const [payload, setPayload] = useState("employee-excluded");
+  const [daas, setDaas] = useState(false);
+  return (
+    <div style={{ display:"flex",flexDirection:"column",gap:16 }}>
+      <div className="card">
+        <div style={{ fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:12 }}>Workforce Planning Connectors</div>
+        <div style={{ display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12 }}>
+          {wfp.map(w=>(
+            <div key={w.name} style={{ padding:14,border:`1px solid ${w.status==="Connected"?"#86efac":w.status==="Coming Soon"?"#e2e8f0":"#93c5fd"}`,borderRadius:8,background:w.status==="Connected"?"#f0fdf4":"white" }}>
+              <div style={{ width:36,height:36,borderRadius:8,background:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#64748b",marginBottom:8 }}>{w.logo}</div>
+              <div style={{ fontSize:12,fontWeight:600,color:"#0f172a",marginBottom:4 }}>{w.name}</div>
+              <span className={`badge ${w.status==="Connected"?"badge-green":w.status==="Coming Soon"?"badge-gray":"badge-blue"}`} style={{ fontSize:10 }}>{w.status}</span>
+              {w.status==="Connected"&&<div style={{ fontSize:10,color:"#64748b",marginTop:6 }}>Last sync: {w.sync}</div>}
+              {w.status==="Available"&&<button className="btn btn-outline" style={{ fontSize:11,padding:"4px 8px",marginTop:8,width:"100%" }}>Connect</button>}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="card">
+        <div style={{ fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:12 }}>Push API Configuration</div>
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12 }}>
+          <div><label style={{ fontSize:12,color:"#64748b",display:"block",marginBottom:4 }}>Endpoint URL</label>
+            <input className="input" value={apiUrl} onChange={e=>setApiUrl(e.target.value)}/></div>
+          <div><label style={{ fontSize:12,color:"#64748b",display:"block",marginBottom:4 }}>Payload Format</label>
+            <select className="select" style={{ width:"100%" }} value={payload} onChange={e=>setPayload(e.target.value)}>
+              <option value="raw">Raw counts</option>
+              <option value="employee-excluded">Employee-excluded counts</option>
+              <option value="adjusted">Fully adjusted counts</option>
+            </select></div>
+          <div><label style={{ fontSize:12,color:"#64748b",display:"block",marginBottom:4 }}>Cadence</label>
+            <div style={{ display:"flex",gap:6 }}>
+              {["real-time","15-min","hourly","daily"].map(c=>(
+                <button key={c} onClick={()=>setCadence(c)} className={`btn ${cadence===c?"btn-primary":"btn-outline"}`} style={{ fontSize:11,padding:"5px 8px" }}>{c}</button>
+              ))}
+            </div></div>
+          <div style={{ display:"flex",alignItems:"flex-end" }}>
+            <button className="btn btn-outline" style={{ width:"100%" }}>Test Ping</button>
+          </div>
+        </div>
+      </div>
+      <div className="card" style={{ border:"1px solid #e2e8f0" }}>
+        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+          <div>
+            <div style={{ fontSize:14,fontWeight:600,color:"#0f172a" }}>Data as a Service Mode</div>
+            <div style={{ fontSize:12,color:"#64748b",marginTop:2 }}>Dashboard-free tier — clean data feed + accuracy SLA only. For enterprise IT buyers who already have a BI/WFP system.</div>
+          </div>
+          <label style={{ position:"relative",width:40,height:22,cursor:"pointer",flexShrink:0 }}>
+            <input type="checkbox" checked={daas} onChange={()=>setDaas(v=>!v)} style={{ opacity:0,width:0,height:0 }}/>
+            <div style={{ position:"absolute",inset:0,borderRadius:9999,background:daas?"#3b82f6":"#cbd5e1" }}>
+              <div style={{ position:"absolute",top:3,left:daas?18:3,width:16,height:16,borderRadius:"50%",background:"white",transition:"left 0.2s" }}/>
+            </div>
+          </label>
+        </div>
+        {daas&&<div style={{ marginTop:12,padding:"10px 14px",background:"#f0f9ff",borderRadius:6,border:"1px solid #bae6fd",fontSize:12,color:"#0369a1" }}>
+          DaaS mode active — dashboard hidden from this account. Includes: accuracy SLA doc · audit reports · API access only.
+          <button className="btn btn-outline" style={{ fontSize:11,padding:"4px 10px",marginLeft:12 }}><Icon name="download" size={11}/> Download SLA doc</button>
+        </div>}
+      </div>
+    </div>
+  );
+};
+
+// ─── Admin Pages ─────────────────────────────────────────────────────────────
+const AdminPage = ({ subPage, setSubPage }) => {
+  const tabs = [
+    { id: "users", label: "Users", icon: "user" },
+    { id: "userProfiles", label: "User Profiles", icon: "user" },
+    { id: "locations", label: "Locations", icon: "location" },
+    { id: "health", label: "Health Monitoring", icon: "health" },
+    { id: "cameras", label: "Cameras", icon: "camera" },
+    { id: "exclusion", label: "Employee Exclusion", icon: "user" },
+    { id: "integrations", label: "Integrations", icon: "analytics" },
+  ];
+
+  const renderContent = () => {
+    switch (subPage) {
+      case "users": return <AdminUsers />;
+      case "userProfiles": return <AdminUserProfiles />;
+      case "locations": return <AdminLocations />;
+      case "health": return <AdminHealth />;
+      case "cameras": return <AdminCameras />;
+      case "exclusion": return <AdminEmployeeExclusion />;
+      case "integrations": return <AdminIntegrations />;
+      default: return <AdminUsers />;
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>Admin Settings</h2>
+        <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Manage users, locations, and system health</p>
+      </div>
+      <div style={{ display: "flex", gap: 0, borderBottom: "2px solid #e2e8f0", marginBottom: 20 }}>
+        {tabs.map(t => (
+          <div key={t.id} className={`tab ${subPage === t.id ? "active" : ""}`} onClick={() => setSubPage(t.id)}>
+            {t.label}
+          </div>
+        ))}
+      </div>
+      {renderContent()}
+    </div>
+  );
+};
+
+const AdminUsers = () => {
+  const [showAdd, setShowAdd] = useState(false);
+  const users = [
+    { name: "Sarah Mitchell", email: "s.mitchell@brand.com", profile: "Store Manager", location: "Fashion Ave", status: "Active" },
+    { name: "Tom Reeves", email: "t.reeves@brand.com", profile: "Regional Manager", location: "Northeast", status: "Active" },
+    { name: "Priya Nair", email: "p.nair@brand.com", profile: "Head Office", location: "All Stores", status: "Active" },
+    { name: "Carlos Ruiz", email: "c.ruiz@brand.com", profile: "Store Manager", location: "Market Street", status: "Pending" },
+  ];
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+        <div style={{ fontSize: 14, color: "#64748b" }}>
+          <strong style={{ color: "#0f172a" }}>Note:</strong> Store Eagle does not add users — this is always managed by Subscription Admins.
+        </div>
+        <button className="btn btn-primary" onClick={() => setShowAdd(!showAdd)}><Icon name="plus" size={14} /> Add User</button>
+      </div>
+      {showAdd && (
+        <div className="card" style={{ marginBottom: 16, border: "1px solid #bae6fd", background: "#f0f9ff" }}>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: "#0f172a" }}>Add New User</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
+            {[["Full Name",""],["Email Address","user@company.com"],["User Profile",""]].map(([l,p],i) => (
+              <div key={l}>
+                <label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>{l}</label>
+                {i === 2 ? (
+                  <select className="select" style={{ width: "100%" }}>
+                    {["Store Manager","Regional Manager","Head Office","IT Admin","Subscription Admin"].map(p => <option key={p}>{p}</option>)}
+                  </select>
+                ) : <input className="input" placeholder={p} />}
+              </div>
+            ))}
+            <div>
+              <label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Location Access</label>
+              <select className="select" style={{ width: "100%" }}>
+                <option>Custom</option><option>All Stores</option><option>Northeast Region</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Language</label>
+              <select className="select" style={{ width: "100%" }}>
+                <option>English</option><option>Spanish</option><option>French</option><option>German</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="btn btn-primary">Send Invite</button>
+            <button className="btn btn-outline" onClick={() => setShowAdd(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
+      <div className="card">
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead><tr style={{ borderBottom: "2px solid #e2e8f0" }}>
+            {["Name","Email","Profile","Location","Status",""].map(h => <th key={h} style={{ textAlign: "left", padding: "8px 12px", color: "#64748b", fontWeight: 600, fontSize: 12 }}>{h}</th>)}
+          </tr></thead>
+          <tbody>
+            {users.map((u, i) => (
+              <tr key={i} className="table-row" style={{ borderBottom: "1px solid #f1f5f9" }}>
+                <td style={{ padding: "10px 12px", color: "#0f172a", fontWeight: 500 }}>{u.name}</td>
+                <td style={{ padding: "10px 12px", color: "#64748b" }}>{u.email}</td>
+                <td style={{ padding: "10px 12px" }}><span className="badge badge-blue">{u.profile}</span></td>
+                <td style={{ padding: "10px 12px", color: "#374151" }}>{u.location}</td>
+                <td style={{ padding: "10px 12px" }}><span className={`badge ${u.status === "Active" ? "badge-green" : "badge-gray"}`}>{u.status}</span></td>
+                <td style={{ padding: "10px 12px" }}><button className="btn btn-ghost" style={{ fontSize: 12, padding: "4px 8px" }}><Icon name="edit" size={12} /> Edit</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+const AdminUserProfiles = () => {
+  const profiles = [
+    { name: "Store Manager", users: 18, video: true, analytics: true, reports: true, admin: false },
+    { name: "Regional Manager", users: 6, video: true, analytics: true, reports: true, admin: false },
+    { name: "Head Office", users: 12, video: false, analytics: true, reports: true, admin: false },
+    { name: "IT Admin", users: 3, video: true, analytics: true, reports: true, admin: true },
+    { name: "Subscription Admin", users: 2, video: true, analytics: true, reports: true, admin: true },
+  ];
+  const perms = ["Video Access","Analytics","Reports","Admin Settings"];
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+        <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Define which features each role can access. Set up profiles before adding users.</p>
+        <button className="btn btn-primary"><Icon name="plus" size={14} /> New Profile</button>
+      </div>
+      <div className="card">
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead><tr style={{ borderBottom: "2px solid #e2e8f0" }}>
+            <th style={{ textAlign: "left", padding: "8px 12px", color: "#64748b", fontWeight: 600, fontSize: 12 }}>Profile Name</th>
+            <th style={{ textAlign: "center", padding: "8px 12px", color: "#64748b", fontWeight: 600, fontSize: 12 }}>Users</th>
+            {perms.map(p => <th key={p} style={{ textAlign: "center", padding: "8px 12px", color: "#64748b", fontWeight: 600, fontSize: 12 }}>{p}</th>)}
+            <th />
+          </tr></thead>
+          <tbody>
+            {profiles.map((p, i) => {
+              const vals = [p.video, p.analytics, p.reports, p.admin];
+              return (
+                <tr key={i} className="table-row" style={{ borderBottom: "1px solid #f1f5f9" }}>
+                  <td style={{ padding: "10px 12px", color: "#0f172a", fontWeight: 500 }}>{p.name}</td>
+                  <td style={{ padding: "10px 12px", textAlign: "center", color: "#64748b" }}>{p.users}</td>
+                  {vals.map((v, j) => (
+                    <td key={j} style={{ padding: "10px 12px", textAlign: "center" }}>
+                      {v ? <span style={{ color: "#16a34a" }}><Icon name="check" size={16} /></span> : <span style={{ color: "#e2e8f0" }}><Icon name="x" size={14} /></span>}
+                    </td>
+                  ))}
+                  <td style={{ padding: "10px 12px" }}><button className="btn btn-ghost" style={{ fontSize: 12, padding: "4px 8px" }}><Icon name="edit" size={12} /> Edit</button></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+const AdminLocations = () => {
+  const [selected, setSelected] = useState("Fashion Ave");
+  const [showHoursEdit, setShowHoursEdit] = useState(false);
+  const regions = {
+    Northeast: ["Fashion Ave","Harbor Walk","Times Square"],
+    West: ["Market Street","Union Square","Sunset Blvd"],
+    South: ["Peachtree","Riverwalk","Bayshore"],
+    Midwest: ["Downtown Core","Lakeside Mall","Wacker Dr"],
+  };
+  const storeHours = [
+    { day: "Mon", open: "10:00 AM", close: "9:00 PM" },
+    { day: "Tue", open: "10:00 AM", close: "9:00 PM" },
+    { day: "Wed", open: "10:00 AM", close: "9:00 PM" },
+    { day: "Thu", open: "10:00 AM", close: "9:00 PM" },
+    { day: "Fri", open: "10:00 AM", close: "10:00 PM" },
+    { day: "Sat", open: "9:00 AM", close: "10:00 PM" },
+    { day: "Sun", open: "11:00 AM", close: "7:00 PM" },
+  ];
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 16 }}>
+      <div className="card">
+        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: "#0f172a" }}>Location Hierarchy</div>
+        {Object.entries(regions).map(([region, stores]) => (
+          <div key={region}>
+            <div style={{ padding: "6px 8px", fontSize: 13, fontWeight: 600, color: "#374151", cursor: "pointer" }}>▾ {region}</div>
+            {stores.map(s => (
+              <div key={s} style={{ padding: "5px 8px 5px 20px", fontSize: 13, cursor: "pointer", borderRadius: 4, background: selected === s ? "#dbeafe" : "transparent", color: selected === s ? "#1d4ed8" : "#374151" }}
+                onClick={() => setSelected(s)}>{s}</div>
+            ))}
+          </div>
+        ))}
+      </div>
+      <div>
+        <div className="card" style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 14, color: "#0f172a" }}>Location Details — {selected}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            {[["Store Name", selected],["Address","245 Fashion Ave, New York, NY 10018"],["Store Code","FAV-001"],["Region","Northeast"],["Time Zone","America/New_York"],["Sensors Installed","4"]].map(([l,v]) => (
+              <div key={l}>
+                <div style={{ fontSize: 12, color: "#64748b", marginBottom: 2 }}>{l}</div>
+                <div style={{ fontSize: 13, color: "#0f172a" }}>{v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="card">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>Store Hours</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="btn btn-outline" style={{ fontSize: 12, padding: "5px 10px" }} onClick={() => setShowHoursEdit(!showHoursEdit)}>
+                <Icon name="edit" size={12} /> New Rule
+              </button>
+              <button className="btn btn-outline" style={{ fontSize: 12, padding: "5px 10px" }}>
+                <Icon name="download" size={12} /> CSV Upload
+              </button>
+            </div>
+          </div>
+          {showHoursEdit && (
+            <div style={{ marginBottom: 14, padding: "12px 14px", background: "#f8fafc", borderRadius: 6, border: "1px solid #e2e8f0" }}>
+              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: "#0f172a" }}>Add Special Hours or Closure</div>
+              <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
+                <div><label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Date</label><input type="date" className="input" style={{ width: 150 }} /></div>
+                <div><label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Opens</label><input type="time" className="input" style={{ width: 110 }} /></div>
+                <div><label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Closes</label><input type="time" className="input" style={{ width: 110 }} /></div>
+                <button className="btn btn-outline" style={{ fontSize: 12, padding: "8px 10px" }}>Mark Closed</button>
+                <button className="btn btn-primary" style={{ fontSize: 12, padding: "8px 10px" }}>Save Rule</button>
+              </div>
+            </div>
+          )}
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead><tr style={{ borderBottom: "2px solid #e2e8f0" }}>
+              {["Day","Opens","Closes","Status"].map(h => <th key={h} style={{ textAlign: "left", padding: "6px 12px", color: "#64748b", fontWeight: 600, fontSize: 12 }}>{h}</th>)}
+            </tr></thead>
+            <tbody>
+              {storeHours.map(h => (
+                <tr key={h.day} className="table-row" style={{ borderBottom: "1px solid #f1f5f9" }}>
+                  <td style={{ padding: "8px 12px", fontWeight: 600, color: "#0f172a" }}>{h.day}</td>
+                  <td style={{ padding: "8px 12px", color: "#374151" }}>{h.open}</td>
+                  <td style={{ padding: "8px 12px", color: "#374151" }}>{h.close}</td>
+                  <td style={{ padding: "8px 12px" }}><span className="badge badge-green">Open</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AdminHealth = () => {
+  const [filter, setFilter] = useState("All");
+  const [typeFilter, setTypeFilter] = useState("All");
+  const sensors = [
+    { id: "S-001", store: "Fashion Ave", type: "Connectivity", since: "Dec 12, 2:14 AM", status: "Unresolved", detail: "Sensor offline — possible power interruption" },
+    { id: "S-002", store: "Market Street", type: "POS Data", since: "Dec 11, 11:30 PM", status: "Unresolved", detail: "POS feed not received since store close" },
+    { id: "S-003", store: "Harbor Walk", type: "Connectivity", since: "Dec 10, 8:00 AM", status: "Resolved", detail: "Sensor back online after firmware update" },
+    { id: "S-004", store: "Downtown Core", type: "Connectivity", since: "Dec 9, 3:45 PM", status: "Resolved", detail: "Resolved by on-site IT" },
+    { id: "S-005", store: "Lakeside Mall", type: "POS Data", since: "Dec 12, 6:00 AM", status: "Unresolved", detail: "POS integration configuration error" },
+  ];
+  const filtered = sensors.filter(s =>
+    (filter === "All" || s.status === filter) &&
+    (typeFilter === "All" || s.type === typeFilter)
+  );
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center" }}>
+        <Icon name="filter" size={14} color="#64748b" />
+        <span style={{ fontSize: 13, color: "#64748b" }}>Status:</span>
+        {["All","Unresolved","Resolved"].map(f => (
+          <button key={f} className={`btn ${filter === f ? "btn-primary" : "btn-outline"}`} style={{ padding: "5px 12px", fontSize: 12 }}
+            onClick={() => setFilter(f)}>{f}</button>
+        ))}
+        <span style={{ fontSize: 13, color: "#64748b", marginLeft: 8 }}>Type:</span>
+        {["All","Connectivity","POS Data"].map(f => (
+          <button key={f} className={`btn ${typeFilter === f ? "btn-primary" : "btn-outline"}`} style={{ padding: "5px 12px", fontSize: 12 }}
+            onClick={() => setTypeFilter(f)}>{f}</button>
+        ))}
+        <div style={{ marginLeft: "auto", display: "flex", gap: 12, fontSize: 13 }}>
+          <span><span className="badge badge-red">●</span> {sensors.filter(s=>s.status==="Unresolved").length} Unresolved</span>
+          <span><span className="badge badge-green">●</span> {sensors.filter(s=>s.status==="Resolved").length} Resolved</span>
+        </div>
+      </div>
+      <div className="card">
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead><tr style={{ borderBottom: "2px solid #e2e8f0" }}>
+            {["","Sensor ID","Store","Type","Since","Detail","Status"].map(h => <th key={h} style={{ textAlign: "left", padding: "8px 12px", color: "#64748b", fontWeight: 600, fontSize: 12 }}>{h}</th>)}
+          </tr></thead>
+          <tbody>
+            {filtered.map((s, i) => (
+              <tr key={i} className="table-row" style={{ borderBottom: "1px solid #f1f5f9" }}>
+                <td style={{ padding: "10px 12px" }}>
+                  {s.status === "Resolved"
+                    ? <span style={{ color: "#16a34a" }}><Icon name="check" size={16} /></span>
+                    : <span style={{ color: "#dc2626" }}><Icon name="x" size={16} /></span>}
+                </td>
+                <td style={{ padding: "10px 12px", color: "#0f172a", fontWeight: 500 }}>{s.id}</td>
+                <td style={{ padding: "10px 12px", color: "#374151" }}>{s.store}</td>
+                <td style={{ padding: "10px 12px" }}><span className={`badge ${s.type === "Connectivity" ? "badge-red" : "badge-gray"}`}>{s.type}</span></td>
+                <td style={{ padding: "10px 12px", color: "#64748b", fontSize: 12 }}>{s.since}</td>
+                <td style={{ padding: "10px 12px", color: "#374151" }}>{s.detail}</td>
+                <td style={{ padding: "10px 12px" }}><span className={`badge ${s.status === "Resolved" ? "badge-green" : "badge-red"}`}>{s.status}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+const AdminCameras = () => {
+  const [statusFilter, setStatusFilter] = useState("All");
+  const cameras = [
+    { id: "CAM-001", store: "Fashion Ave", location: "Entrance A", firmware: "v4.2.1", lastSeen: "Live", online: true },
+    { id: "CAM-002", store: "Fashion Ave", location: "Entrance B", firmware: "v4.2.1", lastSeen: "Live", online: true },
+    { id: "CAM-003", store: "Market Street", location: "Main Door", firmware: "v4.1.8", lastSeen: "Live", online: true },
+    { id: "CAM-004", store: "Harbor Walk", location: "Entrance", firmware: "v4.2.1", lastSeen: "Dec 12, 2:14 AM", online: false },
+    { id: "CAM-005", store: "Downtown Core", location: "Entrance A", firmware: "v4.0.5", lastSeen: "Live", online: true },
+    { id: "CAM-006", store: "Lakeside Mall", location: "North Entry", firmware: "v4.2.1", lastSeen: "Live", online: true },
+  ];
+  const filtered = cameras.filter(c => statusFilter === "All" || (statusFilter === "Online" ? c.online : !c.online));
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        {["All","Online","Offline"].map(f => (
+          <button key={f} className={`btn ${statusFilter === f ? "btn-primary" : "btn-outline"}`} style={{ padding: "5px 12px", fontSize: 12 }}
+            onClick={() => setStatusFilter(f)}>{f}</button>
+        ))}
+      </div>
+      <div className="card">
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead><tr style={{ borderBottom: "2px solid #e2e8f0" }}>
+            {["Camera ID","Store","Location","Firmware","Last Seen","Status"].map(h => <th key={h} style={{ textAlign: "left", padding: "8px 12px", color: "#64748b", fontWeight: 600, fontSize: 12 }}>{h}</th>)}
+          </tr></thead>
+          <tbody>
+            {filtered.map((c, i) => (
+              <tr key={i} className="table-row" style={{ borderBottom: "1px solid #f1f5f9" }}>
+                <td style={{ padding: "10px 12px", fontWeight: 500, color: "#0f172a" }}>{c.id}</td>
+                <td style={{ padding: "10px 12px", color: "#374151" }}>{c.store}</td>
+                <td style={{ padding: "10px 12px", color: "#374151" }}>{c.location}</td>
+                <td style={{ padding: "10px 12px" }}><span className="badge badge-gray">{c.firmware}</span></td>
+                <td style={{ padding: "10px 12px", color: c.online ? "#16a34a" : "#dc2626", fontWeight: c.online ? 600 : 400 }}>{c.lastSeen}</td>
+                <td style={{ padding: "10px 12px" }}><span className={`badge ${c.online ? "badge-green" : "badge-red"}`}>{c.online ? "Online" : "Offline"}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// ─── AI Store Insights Page ───────────────────────────────────────────────
+const VideoClipModal = ({ context, onClose }) => (
+  <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:1001,display:"flex",alignItems:"center",justifyContent:"center" }} onClick={onClose}>
+    <div style={{ background:"white",borderRadius:12,padding:24,width:540,boxShadow:"0 20px 60px rgba(0,0,0,0.3)" }} onClick={e=>e.stopPropagation()}>
+      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
+        <div>
+          <div style={{ fontSize:15,fontWeight:700,color:"#0f172a" }}>Video Clip — {context.zone}</div>
+          <div style={{ fontSize:12,color:"#64748b",marginTop:2 }}>{context.time} · Auto-retrieved from alert event</div>
+        </div>
+        <button className="btn btn-ghost" style={{ padding:4 }} onClick={onClose}><Icon name="x" size={16}/></button>
+      </div>
+      <div style={{ background:"#0f172a",borderRadius:8,height:210,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:16,border:"2px dashed #334155" }}>
+        <div style={{ textAlign:"center" }}>
+          <Icon name="camera" size={40} color="#475569"/>
+          <div style={{ color:"#94a3b8",fontSize:13,marginTop:8 }}>Clip: {context.time} — {context.zone}</div>
+          <div style={{ color:"#64748b",fontSize:11,marginTop:4 }}>Overhead sensor · 30-day retention</div>
+          <div style={{ marginTop:12 }}><span className="badge badge-red" style={{ fontSize:11 }}>● Playing</span></div>
+        </div>
+      </div>
+      <div style={{ padding:"10px 14px",background:"#fef9f9",borderRadius:6,border:"1px solid #fecaca",marginBottom:14,fontSize:12 }}>
+        <strong style={{ color:"#991b1b" }}>{context.message}</strong>
+        <div style={{ color:"#64748b",marginTop:2 }}>{context.detail}</div>
+      </div>
+      <div style={{ display:"flex",gap:8 }}>
+        <button className="btn btn-primary" style={{ flex:1 }}>Export coaching package</button>
+        <button className="btn btn-outline">Download clip</button>
+        <button className="btn btn-outline" onClick={onClose}>Close</button>
+      </div>
+    </div>
+  </div>
+);
+
+const AIStoreInsightsPage = () => {
+  const [showClip, setShowClip] = useState(false);
+  const [clipCtx, setClipCtx] = useState(null);
+  const openClip = (ctx) => { setClipCtx(ctx); setShowClip(true); };
+
+  const alerts = [
+    { time:"2:14 PM", zone:"Zone 3 — Accessories", severity:"high", message:"Conversion dropped 22% · 2–3PM", detail:"8 customers dwelled 2+ min, no associate contact" },
+    { time:"1:48 PM", zone:"Checkout", severity:"medium", message:"3 void/override events in 15 min", detail:"2× baseline POS exception rate" },
+    { time:"12:30 PM", zone:"Zone 1 — Apparel", severity:"low", message:"Associate coverage gap at noon peak", detail:"0 associates in zone during 12–1PM" },
+  ];
+  const zones = [
+    { name:"Entrance",    dwell:0.8, covered:true,  traffic:92, type:"normal" },
+    { name:"Apparel",     dwell:3.2, covered:true,  traffic:74, type:"normal" },
+    { name:"Footwear",    dwell:2.1, covered:false, traffic:48, type:"gap" },
+    { name:"Accessories", dwell:4.8, covered:false, traffic:61, type:"alert" },
+    { name:"Checkout",    dwell:1.4, covered:true,  traffic:55, type:"exception" },
+    { name:"Back Wall",   dwell:0.4, covered:false, traffic:22, type:"gap" },
+  ];
+  const zoneBg = { normal:"rgba(59,130,246,0.12)", alert:"#fef2f2", exception:"#fffbeb", gap:"rgba(59,130,246,0.06)" };
+  const zoneBorder = { normal:"#93c5fd", alert:"#fca5a5", exception:"#fcd34d", gap:"#e2e8f0" };
+
+  return (
+    <div>
+      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
+        <div>
+          <h2 style={{ fontSize:20,fontWeight:700,color:"#0f172a",margin:"0 0 4px 0" }}>AI Store Insights</h2>
+          <p style={{ fontSize:13,color:"#64748b",margin:0 }}>Traffic + customer journey + video — unified operational view</p>
+        </div>
+        <div style={{ display:"flex",gap:8,alignItems:"center" }}>
+          <span className="badge badge-red" style={{ fontSize:12 }}>● 2 Active Alerts</span>
+          <select className="select"><option>Fashion Ave</option><option>Market Street</option><option>Harbor Walk</option></select>
+          <button className="btn btn-outline" style={{ fontSize:13 }}>Today</button>
+        </div>
+      </div>
+
+      {/* Alert banner */}
+      <div style={{ marginBottom:16,padding:"12px 16px",background:"#fef2f2",border:"1px solid #fecaca",borderRadius:8,display:"flex",alignItems:"center",gap:12 }}>
+        <Icon name="bell" size={16} color="#dc2626"/>
+        <div style={{ flex:1,fontSize:13,color:"#991b1b" }}>
+          <strong>Conversion dropped 22%</strong> — Zone 3 (Accessories) 2–3PM · 8 customers dwelled without associate contact
+        </div>
+        <button className="btn" style={{ background:"#dc2626",color:"white",fontSize:12,padding:"5px 14px" }}
+          onClick={()=>openClip(alerts[0])}>Pull Clip →</button>
+      </div>
+
+      {/* 3-panel grid */}
+      <div style={{ display:"grid",gridTemplateColumns:"268px 1fr 268px",gap:14,marginBottom:14 }}>
+
+        {/* LEFT — KPIs + compliance */}
+        <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+          {[
+            { label:"Live Traffic",    value:"124",   delta:"+8.2% vs pace", up:true },
+            { label:"Conversion Rate", value:"26.4%", delta:"−3.1% vs pace", up:false },
+          ].map(m=>(
+            <div key={m.label} className="metric-card" style={{ padding:14 }}>
+              <div className="metric-label">{m.label}</div>
+              <div className="metric-value" style={{ fontSize:24 }}>{m.value}</div>
+              <div className={m.up?"metric-delta-green":"metric-delta-red"}>{m.up?"▲":"▼"} {m.delta}</div>
+            </div>
+          ))}
+          <div className="card" style={{ border:"1px solid #fecaca",background:"#fef9f9",padding:14 }}>
+            <div style={{ fontSize:11,color:"#7f1d1d",fontWeight:700,marginBottom:4 }}>⚠ Revenue Leakage Risk</div>
+            <div style={{ fontSize:26,fontWeight:700,color:"#dc2626" }}>$1,240</div>
+            <div style={{ fontSize:11,color:"#991b1b" }}>Today — high dwell / no purchase</div>
+            <div style={{ fontSize:11,color:"#64748b",marginTop:4 }}>Zone 3 Accessories: 8 customers</div>
+            <button className="btn btn-outline" style={{ fontSize:11,padding:"4px 10px",marginTop:8,width:"100%" }}
+              onClick={()=>openClip(alerts[0])}>View zone footage →</button>
+          </div>
+          <div className="card" style={{ padding:14 }}>
+            <div style={{ fontSize:13,fontWeight:600,color:"#0f172a",marginBottom:8 }}>Associate Zone Compliance</div>
+            {zones.slice(0,5).map(z=>(
+              <div key={z.name} style={{ display:"flex",alignItems:"center",gap:8,marginBottom:5 }}>
+                <div style={{ width:8,height:8,borderRadius:"50%",background:z.covered?"#22c55e":"#f43f5e",flexShrink:0 }}/>
+                <div style={{ flex:1,fontSize:11,color:"#374151" }}>{z.name}</div>
+                <span style={{ fontSize:10,fontWeight:600,color:z.covered?"#16a34a":"#dc2626" }}>{z.covered?"Covered":"Gap"}</span>
+              </div>
+            ))}
+            <div style={{ marginTop:6,fontSize:11,color:"#64748b",borderTop:"1px solid #f1f5f9",paddingTop:6 }}>2 of 5 zones with coverage gaps</div>
+          </div>
+        </div>
+
+        {/* CENTER — zone map */}
+        <div className="card">
+          <div style={{ fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:2 }}>Store Zone Map — Live Dwell Intensity</div>
+          <div style={{ fontSize:12,color:"#64748b",marginBottom:14 }}>Avg dwell in minutes · click alert zone to pull clip</div>
+          <div style={{ background:"#f8fafc",borderRadius:8,padding:14,border:"1px solid #e2e8f0" }}>
+            <div style={{ textAlign:"center",marginBottom:10 }}>
+              <div style={{ display:"inline-block",padding:"7px 20px",background:"#e0f2fe",border:"1px solid #7dd3fc",borderRadius:6,fontSize:12,color:"#0369a1",fontWeight:600 }}>
+                🚪 Entrance — 0.8 min
+              </div>
+            </div>
+            <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8 }}>
+              {zones.slice(1,4).map(z=>(
+                <div key={z.name} onClick={z.type==="alert"?()=>openClip(alerts[0]):undefined}
+                  style={{ padding:"10px 8px",background:zoneBg[z.type],border:`2px solid ${zoneBorder[z.type]}`,borderRadius:6,textAlign:"center",cursor:z.type==="alert"?"pointer":"default" }}>
+                  <div style={{ fontSize:10,fontWeight:700,color:"#0f172a",marginBottom:2 }}>{z.name}</div>
+                  <div style={{ fontSize:18,fontWeight:700,color:z.type==="alert"?"#dc2626":"#1d4ed8" }}>{z.dwell} min</div>
+                  <div style={{ fontSize:9,fontWeight:600,color:z.covered?"#16a34a":"#dc2626" }}>{z.covered?"● Covered":"● No coverage"}</div>
+                  {z.type==="alert"&&<div style={{ fontSize:9,color:"#dc2626",marginTop:2 }}>⚠ Tap to pull clip</div>}
+                </div>
+              ))}
+            </div>
+            <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8 }}>
+              {zones.slice(4).map(z=>(
+                <div key={z.name} style={{ padding:"10px 8px",background:zoneBg[z.type],border:`2px solid ${zoneBorder[z.type]}`,borderRadius:6,textAlign:"center" }}>
+                  <div style={{ fontSize:10,fontWeight:700,color:"#0f172a",marginBottom:2 }}>{z.name}</div>
+                  <div style={{ fontSize:18,fontWeight:700,color:z.type==="exception"?"#d97706":"#1d4ed8" }}>{z.dwell} min</div>
+                  <div style={{ fontSize:9,fontWeight:600,color:z.type==="exception"?"#d97706":z.covered?"#16a34a":"#94a3b8" }}>
+                    {z.type==="exception"?"⚠ POS exceptions":z.covered?"● Covered":"● No coverage"}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop:10,display:"flex",gap:16,fontSize:10,color:"#64748b" }}>
+              <span><span style={{ color:"#1d4ed8" }}>■</span> High dwell</span>
+              <span><span style={{ color:"#dc2626" }}>■</span> Alert zone</span>
+              <span><span style={{ color:"#d97706" }}>■</span> POS exception</span>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT — alert feed + checkout anomalies */}
+        <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+          <div className="card" style={{ padding:14 }}>
+            <div style={{ fontSize:13,fontWeight:600,color:"#0f172a",marginBottom:8 }}>Live Alert Feed</div>
+            {alerts.map((a,i)=>(
+              <div key={i} onClick={()=>openClip(a)}
+                style={{ marginBottom:8,padding:"9px 10px",background:a.severity==="high"?"#fef2f2":a.severity==="medium"?"#fffbeb":"#f8fafc",borderRadius:6,border:`1px solid ${a.severity==="high"?"#fecaca":a.severity==="medium"?"#fde68a":"#e2e8f0"}`,cursor:"pointer" }}>
+                <div style={{ display:"flex",justifyContent:"space-between",marginBottom:2 }}>
+                  <span style={{ fontSize:10,fontWeight:700,color:a.severity==="high"?"#dc2626":a.severity==="medium"?"#d97706":"#64748b" }}>
+                    {a.severity==="high"?"🔴":a.severity==="medium"?"🟡":"🔵"} {a.time}
+                  </span>
+                  <span style={{ fontSize:9,color:"#94a3b8" }}>Pull clip →</span>
+                </div>
+                <div style={{ fontSize:11,fontWeight:600,color:"#0f172a" }}>{a.message}</div>
+                <div style={{ fontSize:10,color:"#64748b",marginTop:1 }}>{a.zone}</div>
+              </div>
+            ))}
+          </div>
+          <div className="card" style={{ padding:14 }}>
+            <div style={{ fontSize:13,fontWeight:600,color:"#0f172a",marginBottom:6 }}>Checkout Anomalies</div>
+            <div style={{ fontSize:11,color:"#64748b",marginBottom:8 }}>POS exceptions vs. checkout traffic</div>
+            {[
+              { time:"1:30–2:00 PM", exc:3, traffic:28, flag:true },
+              { time:"12:00–12:30 PM", exc:1, traffic:34, flag:false },
+              { time:"11:30 AM–12 PM", exc:0, traffic:21, flag:false },
+            ].map((row,i)=>(
+              <div key={i} style={{ display:"flex",alignItems:"center",gap:6,marginBottom:6 }}>
+                <div style={{ fontSize:10,color:"#64748b",width:88,flexShrink:0 }}>{row.time}</div>
+                <div style={{ flex:1,height:14,background:"#f1f5f9",borderRadius:3,overflow:"hidden" }}>
+                  <div style={{ width:`${(row.traffic/40)*100}%`,height:"100%",background:"#3b82f6",borderRadius:3 }}/>
+                </div>
+                <span style={{ fontSize:10,fontWeight:700,color:row.flag?"#dc2626":"#94a3b8",width:34,textAlign:"right" }}>
+                  {row.exc>0?`${row.exc} exc`:"—"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Cross-product story */}
+      <div className="card" style={{ background:"#f0f9ff",border:"1px solid #bae6fd",padding:16 }}>
+        <div style={{ fontSize:13,fontWeight:700,color:"#0369a1",marginBottom:10 }}>💡 The Store Ops Closure Loop</div>
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16 }}>
+          {[
+            { n:"1", label:"Traffic predicts busy 3–5PM Saturday",       icon:"traffic",   color:"#3b82f6" },
+            { n:"2", label:"Workforce planning schedules extra associates", icon:"user",      color:"#8b5cf6" },
+            { n:"3", label:"Zone compliance confirms staff was on floor",  icon:"check",     color:"#16a34a" },
+          ].map(s=>(
+            <div key={s.n} style={{ display:"flex",gap:10,alignItems:"flex-start" }}>
+              <div style={{ width:28,height:28,borderRadius:"50%",background:s.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                <Icon name={s.icon} size={14} color="white"/>
+              </div>
+              <div style={{ fontSize:12,color:"#0f172a",lineHeight:1.5 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {showClip&&clipCtx&&<VideoClipModal context={clipCtx} onClose={()=>setShowClip(false)}/>}
+    </div>
+  );
+};
+
+// ─── Lift Labs Page ────────────────────────────────────────────────────────
+const LiftLabsPage = () => {
+  const [tab, setTab] = useState("active");
+  const [selectedExp, setSelectedExp] = useState(null);
+  const [showWizard, setShowWizard] = useState(false);
+  const [wizardStep, setWizardStep] = useState(1);
+  const [newExp, setNewExp] = useState({ name:"", hypothesis:"", testStores:"", metric:"Traffic" });
+
+  const experiments = {
+    active: [
+      { id:"E-004", name:"North Wall Endcap Redesign", stores:"Fashion Ave (test) vs. Market Street (control)", period:"Dec 1 – Dec 31", metric:"Zone dwell", status:"In progress", lift:"+12% running" },
+      { id:"E-005", name:"Self-Checkout Expansion — 2 lanes", stores:"Harbor Walk", period:"Nov 15 – Dec 15", metric:"Checkout throughput", status:"In progress", lift:"Collecting data" },
+    ],
+    completed: [
+      { id:"E-001", name:"NFL Season Activation — Apparel Zone", stores:"Fashion Ave", period:"Sep 1 – Nov 30", metric:"Zone traffic + dwell", status:"Complete", lift:"+24% zone traffic",
+        results:{ labels:["Traffic","Avg Dwell","Conversion","Revenue/sqft"], test:[47,3.8,35,22.6], control:[38,2.1,29,18.2] },
+        annotations:[{ date:"Sep 5", label:"NFL kickoff" },{ date:"Oct 10", label:"Fixture relocated" }] },
+      { id:"E-002", name:"Accessories Fixture Relocation", stores:"3 test vs. 3 control", period:"Oct 1 – Oct 31", metric:"Zone conversion", status:"Complete", lift:"+8% conversion",
+        results:{ labels:["Traffic","Avg Dwell","Conversion","Revenue/sqft"], test:[61,3.1,30,16.8], control:[52,1.8,22,14.1] },
+        annotations:[{ date:"Oct 1", label:"Fixtures moved" }] },
+    ],
+    drafts: [
+      { id:"E-006", name:"Holiday Window Display A/B", stores:"TBD", period:"Dec 15 – Jan 15", metric:"Capture rate", status:"Draft", lift:"—" },
+    ],
+  };
+
+  const allExp = experiments[tab] || [];
+  const exp = selectedExp;
+
+  return (
+    <div>
+      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20 }}>
+        <div>
+          <h2 style={{ fontSize:20,fontWeight:700,color:"#0f172a",margin:"0 0 4px 0" }}>Lift Labs</h2>
+          <p style={{ fontSize:13,color:"#64748b",margin:0 }}>Test store formats and fixtures before committing capital at scale</p>
+        </div>
+        <button className="btn btn-primary" onClick={()=>{ setShowWizard(true); setWizardStep(1); }}>
+          <Icon name="plus" size={14}/> New Experiment
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display:"flex",gap:0,borderBottom:"2px solid #e2e8f0",marginBottom:20 }}>
+        {[["active","Active","2"],["completed","Completed","2"],["drafts","Drafts","1"]].map(([id,label,count])=>(
+          <div key={id} className={`tab ${tab===id?"active":""}`} onClick={()=>{ setTab(id); setSelectedExp(null); }}>
+            {label} <span style={{ marginLeft:4,padding:"1px 7px",borderRadius:9999,fontSize:11,fontWeight:600,background:tab===id?"#f1f5f9":"#f1f5f9",color:"#64748b" }}>{count}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Experiment list + detail */}
+      <div style={{ display:"grid",gridTemplateColumns:exp?"340px 1fr":"1fr",gap:16 }}>
+        {/* List */}
+        <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
+          {allExp.map(e=>(
+            <div key={e.id} className="card" style={{ cursor:"pointer",border:selectedExp?.id===e.id?"2px solid #3b82f6":"1px solid #e2e8f0",padding:16 }}
+              onClick={()=>setSelectedExp(selectedExp?.id===e.id?null:e)}>
+              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"start",marginBottom:6 }}>
+                <span style={{ fontSize:11,color:"#94a3b8",fontWeight:600 }}>{e.id}</span>
+                <span className={`badge ${e.status==="Complete"?"badge-green":e.status==="Draft"?"badge-gray":"badge-blue"}`}>{e.status}</span>
+              </div>
+              <div style={{ fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:4 }}>{e.name}</div>
+              <div style={{ fontSize:12,color:"#64748b",marginBottom:2 }}>{e.stores}</div>
+              <div style={{ fontSize:12,color:"#64748b",marginBottom:8 }}>{e.period}</div>
+              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+                <span style={{ fontSize:11,color:"#64748b" }}>Primary: {e.metric}</span>
+                <span style={{ fontSize:12,fontWeight:700,color:e.status==="Complete"?"#16a34a":"#3b82f6" }}>{e.lift}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Lift report detail */}
+        {exp&&exp.results&&(
+          <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
+            {/* Results chart */}
+            <div className="card">
+              <div style={{ fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:4 }}>{exp.name} — Lift Report</div>
+              <div style={{ fontSize:12,color:"#64748b",marginBottom:16 }}>{exp.period} · {exp.stores}</div>
+              <div style={{ display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16 }}>
+                {exp.results.labels.map((label,i)=>{
+                  const lift = Math.round(((exp.results.test[i]-exp.results.control[i])/exp.results.control[i])*100);
+                  const maxV = Math.max(exp.results.test[i],exp.results.control[i]);
+                  return (
+                    <div key={label} style={{ textAlign:"center" }}>
+                      <div style={{ fontSize:11,color:"#64748b",marginBottom:8,fontWeight:600 }}>{label}</div>
+                      <div style={{ display:"flex",gap:4,alignItems:"flex-end",height:80,justifyContent:"center" }}>
+                        <div style={{ width:28,display:"flex",flexDirection:"column",alignItems:"center",gap:2 }}>
+                          <div style={{ width:"100%",background:"#3b82f6",borderRadius:"3px 3px 0 0",height:`${(exp.results.test[i]/maxV)*72}px` }}/>
+                          <div style={{ fontSize:9,color:"#94a3b8" }}>Test</div>
+                        </div>
+                        <div style={{ width:28,display:"flex",flexDirection:"column",alignItems:"center",gap:2 }}>
+                          <div style={{ width:"100%",background:"#cbd5e1",borderRadius:"3px 3px 0 0",height:`${(exp.results.control[i]/maxV)*72}px` }}/>
+                          <div style={{ fontSize:9,color:"#94a3b8" }}>Ctrl</div>
+                        </div>
+                      </div>
+                      <div style={{ marginTop:6,fontSize:12,fontWeight:700,color:lift>0?"#16a34a":"#dc2626" }}>
+                        {lift>0?"+":""}{lift}%
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Annotation timeline */}
+              <div style={{ borderTop:"1px solid #f1f5f9",paddingTop:12 }}>
+                <div style={{ fontSize:12,fontWeight:600,color:"#0f172a",marginBottom:8 }}>Annotation Timeline</div>
+                <div style={{ position:"relative",height:32,background:"#f8fafc",borderRadius:6,border:"1px solid #e2e8f0",overflow:"hidden" }}>
+                  <div style={{ position:"absolute",top:0,left:0,right:0,height:2,background:"#e2e8f0",top:"50%",transform:"translateY(-50%)" }}/>
+                  {exp.annotations.map((a,i)=>(
+                    <div key={i} style={{ position:"absolute",left:`${20+i*45}%`,top:"50%",transform:"translate(-50%,-50%)" }}>
+                      <Tooltip text={a.label}>
+                        <div style={{ width:10,height:10,borderRadius:"50%",background:"#3b82f6",border:"2px solid white",cursor:"help" }}/>
+                      </Tooltip>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display:"flex",gap:16,marginTop:6 }}>
+                  {exp.annotations.map((a,i)=>(
+                    <div key={i} style={{ display:"flex",gap:4,alignItems:"center",fontSize:11,color:"#64748b" }}>
+                      <div style={{ width:8,height:8,borderRadius:"50%",background:"#3b82f6" }}/>
+                      {a.date}: {a.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Zone ROI card */}
+            <div className="card" style={{ background:"#f0fdf4",border:"1px solid #bbf7d0" }}>
+              <div style={{ fontSize:13,fontWeight:700,color:"#15803d",marginBottom:8 }}>💰 Zone ROI Attribution</div>
+              <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12 }}>
+                {[
+                  { label:"Incremental revenue (test period)", value:"$4,200" },
+                  { label:"Annualized projection", value:"$50,400" },
+                  { label:"Revenue lift per sensor", value:"$12,600" },
+                ].map(m=>(
+                  <div key={m.label}>
+                    <div style={{ fontSize:11,color:"#166534",marginBottom:2 }}>{m.label}</div>
+                    <div style={{ fontSize:20,fontWeight:700,color:"#15803d" }}>{m.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Cross-store fixture ranking */}
+            <div className="card">
+              <div style={{ fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:12 }}>Cross-Store Fixture Performance Ranking</div>
+              {[
+                { fixture:"North Wall Endcap", rank:1, dwell:"3.8 min", stores:"14/20 top quartile", status:"top" },
+                { fixture:"Accessories Center Table", rank:2, dwell:"3.1 min", stores:"11/20 top quartile", status:"top" },
+                { fixture:"Back Wall Feature", rank:3, dwell:"1.4 min", stores:"6/20 above median", status:"mid" },
+                { fixture:"Entrance Display", rank:4, dwell:"0.8 min", stores:"3/20 top quartile", status:"low" },
+              ].map(f=>(
+                <div key={f.rank} style={{ display:"flex",alignItems:"center",gap:12,padding:"8px 0",borderBottom:"1px solid #f1f5f9" }}>
+                  <div style={{ width:22,fontSize:12,color:"#94a3b8",fontWeight:700 }}>#{f.rank}</div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13,fontWeight:600,color:"#0f172a" }}>{f.fixture}</div>
+                    <div style={{ fontSize:11,color:"#64748b" }}>{f.stores}</div>
+                  </div>
+                  <div style={{ fontSize:13,fontWeight:600,color:"#0f172a" }}>{f.dwell}</div>
+                  <span className={`badge ${f.status==="top"?"badge-green":f.status==="mid"?"badge-blue":"badge-gray"}`}>
+                    {f.status==="top"?"Top quartile":f.status==="mid"?"Mid":"Below median"}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display:"flex",gap:8 }}>
+              <button className="btn btn-primary"><Icon name="download" size={14}/> Export Capital Justification Report</button>
+              <button className="btn btn-outline" onClick={()=>setSelectedExp(null)}>Close</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* New experiment wizard */}
+      {showWizard&&(
+        <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center" }}
+          onClick={()=>setShowWizard(false)}>
+          <div style={{ background:"white",borderRadius:12,padding:28,width:520,boxShadow:"0 20px 60px rgba(0,0,0,0.2)" }} onClick={e=>e.stopPropagation()}>
+            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20 }}>
+              <div style={{ fontSize:16,fontWeight:700,color:"#0f172a" }}>New Experiment — Step {wizardStep} of 4</div>
+              <button className="btn btn-ghost" style={{ padding:4 }} onClick={()=>setShowWizard(false)}><Icon name="x" size={16}/></button>
+            </div>
+            <div style={{ display:"flex",gap:4,marginBottom:20 }}>
+              {[1,2,3,4].map(s=>(
+                <div key={s} style={{ flex:1,height:4,borderRadius:2,background:s<=wizardStep?"#0f172a":"#e2e8f0" }}/>
+              ))}
+            </div>
+            {wizardStep===1&&(
+              <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
+                <div style={{ fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:4 }}>Name &amp; Hypothesis</div>
+                <div><label style={{ fontSize:12,color:"#64748b",display:"block",marginBottom:4 }}>Experiment Name</label>
+                  <input className="input" placeholder="e.g. Holiday Endcap Relocation" value={newExp.name} onChange={e=>setNewExp({...newExp,name:e.target.value})}/></div>
+                <div><label style={{ fontSize:12,color:"#64748b",display:"block",marginBottom:4 }}>Hypothesis</label>
+                  <input className="input" placeholder="Moving the endcap will increase zone dwell by 15%" value={newExp.hypothesis} onChange={e=>setNewExp({...newExp,hypothesis:e.target.value})}/></div>
+              </div>
+            )}
+            {wizardStep===2&&(
+              <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
+                <div style={{ fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:4 }}>Test &amp; Control Stores</div>
+                <div><label style={{ fontSize:12,color:"#64748b",display:"block",marginBottom:4 }}>Test Store(s)</label>
+                  <select className="select" style={{ width:"100%" }}><option>Fashion Ave</option><option>Market Street</option><option>Harbor Walk</option></select></div>
+                <div><label style={{ fontSize:12,color:"#64748b",display:"block",marginBottom:4 }}>Control Store(s)</label>
+                  <select className="select" style={{ width:"100%" }}><option>Downtown Core</option><option>Lakeside Mall</option></select></div>
+              </div>
+            )}
+            {wizardStep===3&&(
+              <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
+                <div style={{ fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:4 }}>Test Period</div>
+                <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:12 }}>
+                  <div><label style={{ fontSize:12,color:"#64748b",display:"block",marginBottom:4 }}>Start Date</label><input type="date" className="input"/></div>
+                  <div><label style={{ fontSize:12,color:"#64748b",display:"block",marginBottom:4 }}>End Date</label><input type="date" className="input"/></div>
+                </div>
+              </div>
+            )}
+            {wizardStep===4&&(
+              <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
+                <div style={{ fontSize:14,fontWeight:600,color:"#0f172a",marginBottom:4 }}>Primary Metric</div>
+                {["Traffic","Zone Dwell","Conversion","Revenue per Sq Ft","Capture Rate"].map(m=>(
+                  <label key={m} style={{ display:"flex",alignItems:"center",gap:8,cursor:"pointer" }}>
+                    <input type="radio" name="metric" checked={newExp.metric===m} onChange={()=>setNewExp({...newExp,metric:m})}/>
+                    <span style={{ fontSize:13,color:"#374151" }}>{m}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+            <div style={{ display:"flex",gap:8,marginTop:20,justifyContent:"flex-end" }}>
+              {wizardStep>1&&<button className="btn btn-outline" onClick={()=>setWizardStep(s=>s-1)}>Back</button>}
+              {wizardStep<4
+                ?<button className="btn btn-primary" onClick={()=>setWizardStep(s=>s+1)}>Next →</button>
+                :<button className="btn btn-primary" onClick={()=>setShowWizard(false)}>Create Experiment</button>}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Alerts Drawer ────────────────────────────────────────────────────────
+const AlertsDrawer = ({ onClose }) => {
+  const alerts = [
+    { time:"2:14 PM", zone:"Zone 3 — Accessories", severity:"high", message:"Conversion dropped 22% · 2–3PM", store:"Fashion Ave" },
+    { time:"1:48 PM", zone:"Checkout", severity:"medium", message:"3 void/override events in 15 min", store:"Fashion Ave" },
+    { time:"12:30 PM", zone:"Zone 1 — Apparel", severity:"low", message:"Associate coverage gap 12–1PM", store:"Market Street" },
+    { time:"9:02 AM", zone:"Sensor S-004", severity:"medium", message:"Sensor offline — connectivity issue", store:"Harbor Walk" },
+  ];
+  return (
+    <div style={{ position:"fixed",inset:0,zIndex:999 }} onClick={onClose}>
+      <div style={{ position:"absolute",top:0,right:0,bottom:0,width:360,background:"white",boxShadow:"-4px 0 24px rgba(0,0,0,0.12)",display:"flex",flexDirection:"column" }}
+        onClick={e=>e.stopPropagation()}>
+        <div style={{ padding:"16px 20px",borderBottom:"1px solid #e2e8f0",display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+          <div style={{ fontSize:15,fontWeight:700,color:"#0f172a" }}>Alerts <span style={{ marginLeft:6,padding:"2px 8px",background:"#fee2e2",color:"#dc2626",borderRadius:9999,fontSize:12,fontWeight:700 }}>2</span></div>
+          <button className="btn btn-ghost" style={{ padding:4 }} onClick={onClose}><Icon name="x" size={16}/></button>
+        </div>
+        <div style={{ flex:1,overflow:"auto",padding:16,display:"flex",flexDirection:"column",gap:10 }}>
+          {alerts.map((a,i)=>(
+            <div key={i} style={{ padding:"12px 14px",background:a.severity==="high"?"#fef2f2":a.severity==="medium"?"#fffbeb":"#f8fafc",borderRadius:8,border:`1px solid ${a.severity==="high"?"#fecaca":a.severity==="medium"?"#fde68a":"#e2e8f0"}` }}>
+              <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
+                <span style={{ fontSize:11,fontWeight:700,color:a.severity==="high"?"#dc2626":a.severity==="medium"?"#d97706":"#64748b" }}>
+                  {a.severity==="high"?"🔴":a.severity==="medium"?"🟡":"🔵"} {a.time}
+                </span>
+                <span style={{ fontSize:11,color:"#94a3b8" }}>{a.store}</span>
+              </div>
+              <div style={{ fontSize:13,fontWeight:600,color:"#0f172a",marginBottom:2 }}>{a.message}</div>
+              <div style={{ fontSize:11,color:"#64748b" }}>{a.zone}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ padding:"12px 20px",borderTop:"1px solid #e2e8f0" }}>
+          <button className="btn btn-outline" style={{ width:"100%",fontSize:13 }}>View all in AI Store Insights →</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Help Modal ────────────────────────────────────────────────────────────
+const HelpModal = ({ onClose }) => (
+  <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ background: "white", borderRadius: 12, padding: 28, width: 400, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a" }}>Help & Resources</div>
+        <button className="btn btn-ghost" style={{ padding: 4 }} onClick={onClose}><Icon name="x" size={16} /></button>
+      </div>
+      {[
+        { icon: "video", label: "Walkthrough Video", desc: "1–2 min overview of this page" },
+        { icon: "reports", label: "Documentation", desc: "Step-by-step user guide for this page" },
+        { icon: "analytics", label: "Knowledge Base", desc: "Wiki articles and best practices" },
+        { icon: "performance", label: "Training Institute", desc: "Self-guided learning portal with exercises" },
+      ].map(item => (
+        <div key={item.label} style={{ display: "flex", gap: 12, padding: "12px 0", borderBottom: "1px solid #f1f5f9", cursor: "pointer" }}
+          onClick={onClose}>
+          <div style={{ width: 36, height: 36, background: "#f1f5f9", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Icon name={item.icon} size={18} color="#64748b" />
+          </div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{item.label}</div>
+            <div style={{ fontSize: 12, color: "#64748b" }}>{item.desc}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// ─── App Shell ─────────────────────────────────────────────────────────────
+const App = () => {
+  const [page, setPage] = useState("ai-insights");
+  const [adminSubPage, setAdminSubPage] = useState("users");
+  const [showHelp, setShowHelp] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showAlerts, setShowAlerts] = useState(false);
+  const [persona, setPersona] = useState("corporate");
+  const [showDemoScript, setShowDemoScript] = useState(false);
+
+  const navigate = (p) => { setPage(p); setShowUserMenu(false); setShowAlerts(false); };
+
+  const navItems = [
+    { id: "ai-insights",   label: "AI Store Insights", icon: "insights" },
+    { id: "lift-labs",     label: "Lift Labs",          icon: "liftlabs" },
+    { id: "operations",    label: "Operations",         icon: "dashboard" },
+    { id: "video",         label: "Video",              icon: "video" },
+    { id: "traffic",       label: "Traffic",            icon: "traffic" },
+    { id: "performance",   label: "Performance",        icon: "performance" },
+    { id: "optimization",  label: "Optimization",       icon: "optimize" },
+    { id: "benchmarks",    label: "Benchmarks",         icon: "benchmark" },
+    { id: "analytics",     label: "Analytics",          icon: "analytics" },
+    { id: "reports",       label: "Reports",            icon: "reports" },
+  ];
+
+  const renderPage = () => {
+    switch (page) {
+      case "ai-insights":  return <AIStoreInsightsPage />;
+      case "lift-labs":    return <LiftLabsPage />;
+      case "video":        return <VideoPage navigate={navigate} />;
+      case "operations":   return <OperationsDashboard navigate={navigate} />;
+      case "traffic":      return <TrafficDashboard />;
+      case "performance":  return <PerformanceDashboard />;
+      case "optimization": return <OptimizationDashboard />;
+      case "benchmarks":   return <BenchmarksDashboard />;
+      case "analytics":    return <AnalyticsPage />;
+      case "reports":      return <ReportsPage />;
+      case "admin":        return <AdminPage subPage={adminSubPage} setSubPage={setAdminSubPage} />;
+      default:             return <AIStoreInsightsPage />;
+    }
+  };
+
+  return (
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
+      {/* Sidebar */}
+      <div style={{ width: 220, background: "white", borderRight: "1px solid #e2e8f0", display: "flex", flexDirection: "column", padding: "16px 8px", flexShrink: 0 }}>
+        {/* Logo */}
+        <div style={{ padding: "8px 12px", marginBottom: 16 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", letterSpacing: -0.5 }}>Store Eagle</div>
+          <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>Analytics Platform</div>
+        </div>
+
+        {/* Nav */}
+        <div style={{ flex: 1 }}>
+          {navItems.map(item => (
+            <div key={item.id} className={`sidebar-item ${page === item.id ? "active" : ""}`} onClick={() => navigate(item.id)}>
+              <Icon name={item.icon} size={16} color={page === item.id ? "white" : "#64748b"} />
+              <span>{item.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Admin + User */}
+        <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: 12 }}>
+          <div className="sidebar-item" onClick={() => setShowDemoScript(true)} style={{ color: "#6366f1" }}>
+            <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <span style={{ fontWeight: 600 }}>Demo Script</span>
+          </div>
+          <div className={`sidebar-item ${page === "admin" ? "active" : ""}`} onClick={() => navigate("admin")}>
+            <Icon name="admin" size={16} color={page === "admin" ? "white" : "#64748b"} />
+            <span>Admin Settings</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {/* Topbar */}
+        <div style={{ height: 56, background: "white", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", padding: "0 24px", gap: 12, flexShrink: 0 }}>
+          {/* Persona switcher */}
+          <div style={{ display:"flex",background:"#f1f5f9",borderRadius:8,padding:3,gap:2,flexShrink:0 }}>
+            {[["corporate","Corporate"],["store-mgr","Store Mgr"],["franchise","Franchise"]].map(([id,label])=>(
+              <button key={id} onClick={()=>setPersona(id)}
+                style={{ padding:"4px 12px",borderRadius:6,fontSize:12,fontWeight:600,border:"none",cursor:"pointer",
+                  background:persona===id?"white":"transparent",
+                  color:persona===id?"#0f172a":"#64748b",
+                  boxShadow:persona===id?"0 1px 3px rgba(0,0,0,0.1)":"none" }}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <div style={{ width:1,height:24,background:"#e2e8f0" }}/>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:13,color:"#64748b" }}>
+              {["All Regions","Northeast","West","South","Midwest"].map(r=>(
+                <button key={r} className="btn btn-ghost" style={{ fontSize:13,padding:"4px 10px" }}>{r}</button>
+              ))}
+            </div>
+          </div>
+          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+            <span className="badge badge-green" style={{ fontSize:11 }}>● Live</span>
+            {/* Bell / alerts */}
+            <div style={{ position:"relative" }}>
+              <button className="btn btn-outline" style={{ padding:"5px 10px" }} onClick={()=>setShowAlerts(v=>!v)}>
+                <Icon name="bell" size={15}/>
+              </button>
+              <div style={{ position:"absolute",top:-4,right:-4,width:16,height:16,borderRadius:"50%",background:"#dc2626",color:"white",fontSize:9,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center" }}>2</div>
+            </div>
+            <button className="btn btn-outline" style={{ fontSize: 13, padding: "5px 12px" }} onClick={() => setShowHelp(true)}>
+              <Icon name="help" size={14} /> Help
+            </button>
+            <div style={{ position: "relative" }}>
+              <div style={{ display: "flex", align: "center", gap: 8, cursor: "pointer", padding: "5px 10px", borderRadius: 6, border: "1px solid #e2e8f0" }}
+                onClick={() => setShowUserMenu(!showUserMenu)}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#0f172a", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>JK</div>
+                <div style={{ fontSize: 13, color: "#0f172a", lineHeight: 1.3 }}>
+                  <div>John Kim</div>
+                  <div style={{ fontSize: 11, color: "#94a3b8" }}>Subscription Admin</div>
+                </div>
+                <Icon name="chevronDown" size={14} color="#94a3b8" />
+              </div>
+              {showUserMenu && (
+                <div className="dropdown-menu" style={{ right: 0, top: "calc(100% + 4px)" }}>
+                  <div className="dropdown-item" onClick={() => { navigate("admin"); setShowUserMenu(false); }}>Admin Settings</div>
+                  <div className="dropdown-item" onClick={() => setShowUserMenu(false)}>Profile</div>
+                  <div style={{ height: 1, background: "#f1f5f9", margin: "4px 0" }} />
+                  <div className="dropdown-item" style={{ color: "#dc2626" }}>Sign Out</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Page content */}
+        <div style={{ flex: 1, overflow: "auto", padding: 24 }}>
+          {renderPage()}
+        </div>
+      </div>
+
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+      {showAlerts && <AlertsDrawer onClose={() => setShowAlerts(false)} />}
+      {showDemoScript && (
+        <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center" }} onClick={() => setShowDemoScript(false)}>
+          <div style={{ background:"white",borderRadius:12,width:720,maxHeight:"85vh",display:"flex",flexDirection:"column",overflow:"hidden" }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding:"20px 24px",borderBottom:"1px solid #e2e8f0",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0 }}>
+              <div>
+                <div style={{ fontSize:18,fontWeight:700,color:"#0f172a" }}>Demo Script</div>
+                <div style={{ fontSize:13,color:"#64748b",marginTop:2 }}>Store Eagle — Prototype walkthrough · ~12 minutes</div>
+              </div>
+              <button onClick={() => setShowDemoScript(false)} style={{ border:"none",background:"none",cursor:"pointer",fontSize:20,color:"#94a3b8",lineHeight:1 }}>✕</button>
+            </div>
+            <div style={{ overflowY:"auto",padding:"24px",fontSize:14,lineHeight:1.7,color:"#334155" }}>
+              {[
+                { stop:"1", title:"AI Store Insights", time:"3 min", color:"#6366f1", steps:[
+                  {label:"Opening line", text:"\"This is the unified operational view — traffic, customer journey, and video evidence all in one surface. Today this data lives in three separate tabs with no connection between them. AI Store Insights closes that loop.\""},
+                  {label:"Click alert banner", text:"\"Customer Journey detected a conversion drop in Zone 3 between 2–3 PM. One click auto-retrieves the video clip. The manager doesn't file a ticket — the system surfaces the evidence at the moment of the alert.\""},
+                  {label:"Show video modal", text:"\"Same hardware. Same footage. What's new is the connection — the analytic triggers the video, not the other way around. That's a coaching moment, not an investigation.\""},
+                  {label:"Zone map", text:"\"Red border = high dwell with no coverage — revenue leakage indicator. $1,240 today at Fashion Ave. Not shrink, not LP — margin leakage from an operational gap.\""},
+                  {label:"Checkout Anomalies", text:"\"POS exception correlation — three exceptions in fifteen minutes at 1:30 PM, above twice the baseline rate. Store Ops language, not LP language. Same data, different conversation.\""},
+                ]},
+                { stop:"2", title:"Lift Labs", time:"3 min", color:"#0891b2", steps:[
+                  {label:"Opening line", text:"\"This is the fastest-growing product line — and it currently has no dedicated UI surface. The corporate Store Development buyer who funds this work can't see their experiments without translating raw analytics data themselves.\""},
+                  {label:"Click NFL Season Activation", text:"\"A Store Dev buyer doesn't think in sensor counts — they think in test versus control, before versus after, and 'did this activation justify the build cost?' This is the report they need to take to the CPO and say yes.\""},
+                  {label:"Zone ROI card", text:"\"$4,200 incremental revenue over the test period. $50,400 annualized. $12,600 per sensor. That's the sentence that unlocks the renewal conversation and the next deployment.\""},
+                  {label:"Annotation timeline", text:"\"Event markers. 'NFL kickoff, September 5. Fixture relocated, October 10.' Now the chart isn't just data — it's evidence that a specific decision drove a specific outcome.\""},
+                  {label:"New Experiment wizard", text:"\"Four-step wizard. Hypothesis, test and control stores, date range, primary metric. Two minutes. Store Dev doesn't need to know how the sensors work.\""},
+                ]},
+                { stop:"3", title:"Performance", time:"2 min", color:"#059669", steps:[
+                  {label:"AI Recommendations", text:"\"The diagnostic engine connects a specific metric signal to a specific action with a confidence score. 'Response time averaging 3.4 minutes in Section B — move one associate from the stockroom before 2 PM.' That's actionable. That's different store to store, shift to shift.\""},
+                  {label:"Revenue at Risk", text:"\"Fourteen customers who dwelled more than two minutes without associate contact and left without purchasing. $840 today. Store managers respond to that differently than a conversion rate.\""},
+                  {label:"Signal hierarchy tooltip", text:"\"Baseline 340, plus 15% Saturday, minus 8% rain, plus 22% sale event, equals 412 predicted. The manager sees the inputs, not just the output. That's the difference between a number they trust and a number they ignore.\""},
+                ]},
+                { stop:"4", title:"Optimization — Employee Exclusion", time:"1.5 min", color:"#d97706", steps:[
+                  {label:"Expand panel", text:"\"Employee exclusion was described on the Verizon call as the reason a one-sensor solution might not work. It's been 'three years out' for three years. This panel makes it a configurable product feature instead of a per-customer engineering project.\""},
+                  {label:"Toggle UWB Badge + Shift Schedule", text:"\"Four badges registered at Fashion Ave — the beta is live. CSV upload or connect to HR system. These aren't separate IT projects — they're settings in the platform.\""},
+                  {label:"Dwell slider", text:"\"For stores where UWB isn't deployed yet — a dwell threshold. 45 minutes continuous presence flagged as probable employee. Adjustable per store format.\""},
+                ]},
+                { stop:"5", title:"Admin → Integrations", time:"1 min", color:"#7c3aed", steps:[
+                  {label:"WFP connectors", text:"\"UKG connected. Kronos, Blue Yonder available. Workday coming soon. Pre-built certified integrations mean data flows into the tool they already use — we're not asking them to log into a second place.\""},
+                  {label:"DaaS mode toggle", text:"\"Dashboard hidden. Clean data feed plus accuracy SLA. For the enterprise IT buyer who already has a BI system — this is a data provider relationship, not a platform relationship.\""},
+                ]},
+                { stop:"6", title:"Persona Switcher", time:"0.5 min", color:"#0f172a", steps:[
+                  {label:"Switch to Franchise", text:"\"Same platform, different lens. Franchise owner view shows their stores against five matched peers — similar format, market size, tenure — not against the whole chain. A franchise owner who's 20% below peer conversion doesn't know it today.\""},
+                ]},
+              ].map(({ stop, title, time, color, steps }) => (
+                <div key={stop} style={{ marginBottom:28 }}>
+                  <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:12 }}>
+                    <div style={{ width:28,height:28,borderRadius:"50%",background:color,color:"white",fontSize:13,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>{stop}</div>
+                    <div style={{ fontWeight:700,fontSize:15,color:"#0f172a" }}>{title}</div>
+                    <div style={{ marginLeft:"auto",fontSize:12,color:"#94a3b8",fontWeight:500 }}>{time}</div>
+                  </div>
+                  {steps.map(({ label, text }, i) => (
+                    <div key={i} style={{ display:"flex",gap:10,marginBottom:10,paddingLeft:38 }}>
+                      <div style={{ flexShrink:0,marginTop:2 }}>
+                        <div style={{ width:6,height:6,borderRadius:"50%",background:color,marginTop:6 }} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em",color:color,marginBottom:3 }}>{label}</div>
+                        <div style={{ color:"#475569",fontStyle:"italic" }}>{text}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+              <div style={{ borderTop:"1px solid #e2e8f0",paddingTop:16,marginTop:4,fontSize:13,color:"#64748b" }}>
+                <strong style={{ color:"#0f172a" }}>Close:</strong> "Everything you've seen runs on infrastructure that's already deployed. AI Store Insights activates as a subscription on existing sensors. Lift Labs is a SKU with a different buyer and a different budget conversation. The platform isn't missing capability — it's missing the surface that makes the capability visible to the right buyer."
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

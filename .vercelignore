@@ -1,0 +1,8 @@
+*.mp4
+*.docx
+*.pdf
+*.xlsx
+*.url
+*.txt
+Graveyard/
+.claude/

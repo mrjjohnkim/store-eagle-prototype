@@ -1,0 +1,16 @@
+.vercel
+
+# Personal/interview files — not part of the prototype
+*.mp4
+*.docx
+*.pdf
+*.xlsx
+*.url
+*.txt
+Graveyard/
+.claude/
+John Kim*
+Demo - *
+Verizon*
+Wild birds*
+Google*
