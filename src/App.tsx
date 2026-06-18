@@ -88,7 +88,7 @@ export default function App() {
           navigate={navigate}
         />
 
-        <div style={{ flex: 1, overflowY: "auto" }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: "24px 28px" }}>
           {renderPage()}
         </div>
       </div>
