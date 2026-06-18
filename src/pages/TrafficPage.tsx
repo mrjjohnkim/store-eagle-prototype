@@ -3,6 +3,7 @@ import { SparkLine } from "../components/ui/Charts";
 
 const TrafficPage: React.FC = () => {
   const [compare, setCompare] = useState("Last Year");
+  const [hoveredBar, setHoveredBar] = useState<{ day: number; isThis: boolean } | null>(null);
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const thisWeek = [1240, 1180, 1350, 1420, 1680, 2210, 1890];
   const lastWeek = [1100, 1050, 1280, 1360, 1600, 2100, 1750];
@@ -46,21 +47,49 @@ const TrafficPage: React.FC = () => {
 
       <div className="card" style={{ marginBottom: 16 }}>
         <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: "#0f172a" }}>Traffic by Day — This Week</div>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 100 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
           {days.map((d, i) => {
             const maxV = Math.max(...thisWeek, ...ly);
+            const delta = thisWeek[i] - ly[i];
+            const pct = Math.round((delta / ly[i]) * 100);
+            const up = delta >= 0;
             return (
-              <div key={d} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                <div style={{ width: "100%", display: "flex", gap: 2, alignItems: "flex-end", height: 80 }}>
-                  <div style={{ flex: 1, background: "#3b82f6", borderRadius: "3px 3px 0 0", height: `${(thisWeek[i] / maxV) * 100}%` }} />
-                  <div style={{ flex: 1, background: "#e2e8f0", borderRadius: "3px 3px 0 0", height: `${(ly[i] / maxV) * 100}%` }} />
+              <div key={d} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                {/* Delta badge */}
+                <div style={{ fontSize: 9, fontWeight: 700, color: up ? "#16a34a" : "#dc2626", background: up ? "#dcfce7" : "#fee2e2", padding: "1px 4px", borderRadius: 3, whiteSpace: "nowrap", marginBottom: 2 }}>
+                  {up ? "+" : ""}{pct}%
                 </div>
-                <div style={{ fontSize: 11, color: "#94a3b8" }}>{d}</div>
+                {/* Bars */}
+                <div style={{ width: "100%", display: "flex", gap: 2, alignItems: "flex-end", height: 76 }}>
+                  <div
+                    style={{ flex: 1, background: "#3b82f6", borderRadius: "3px 3px 0 0", height: `${(thisWeek[i] / maxV) * 100}%`, position: "relative", cursor: "default" }}
+                    onMouseEnter={() => setHoveredBar({ day: i, isThis: true })}
+                    onMouseLeave={() => setHoveredBar(null)}
+                  >
+                    {hoveredBar?.day === i && hoveredBar.isThis && (
+                      <div style={{ position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)", background: "#0f172a", color: "white", padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
+                        {thisWeek[i].toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    style={{ flex: 1, background: "#e2e8f0", borderRadius: "3px 3px 0 0", height: `${(ly[i] / maxV) * 100}%`, position: "relative", cursor: "default" }}
+                    onMouseEnter={() => setHoveredBar({ day: i, isThis: false })}
+                    onMouseLeave={() => setHoveredBar(null)}
+                  >
+                    {hoveredBar?.day === i && !hoveredBar.isThis && (
+                      <div style={{ position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)", background: "#0f172a", color: "white", padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
+                        {ly[i].toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{d}</div>
               </div>
             );
           })}
         </div>
-        <div style={{ display: "flex", gap: 16, marginTop: 8, fontSize: 12 }}>
+        <div style={{ display: "flex", gap: 16, marginTop: 10, fontSize: 12 }}>
           <span><span style={{ color: "#3b82f6" }}>■</span> This Week</span>
           <span><span style={{ color: "#cbd5e1" }}>■</span> {compare}</span>
         </div>
