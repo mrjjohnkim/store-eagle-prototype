@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import Icon from "../components/ui/Icon";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 
 const OptimizationDashboard: React.FC = () => {
   const [metric, setMetric] = useState("Traffic");
@@ -55,7 +59,7 @@ const OptimizationDashboard: React.FC = () => {
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           {["Traffic", "Conversion Rate"].map((m) => (
-            <button key={m} className={`btn ${metric === m ? "btn-primary" : "btn-outline"}`} style={{ padding: "6px 12px", fontSize: 13 }} onClick={() => setMetric(m)}>{m}</button>
+            <Button key={m} variant={metric === m ? "default" : "outline"} size="sm" onClick={() => setMetric(m)}>{m}</Button>
           ))}
         </div>
       </div>
@@ -67,31 +71,29 @@ const OptimizationDashboard: React.FC = () => {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <Icon name="user" size={15} color="#64748b" />
             <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>Employee Exclusion Settings</span>
-            <span className="badge badge-green" style={{ fontSize: 10 }}>
+            <Badge className="bg-emerald-100 text-emerald-700 border-0 text-[10px]">
               {activeMethods} method{activeMethods !== 1 ? "s" : ""} active
-            </span>
+            </Badge>
           </div>
           <Icon name={showExclusion ? "chevronDown" : "chevronRight"} size={14} color="#64748b" />
         </div>
         {showExclusion && (
           <div style={{ padding: 16, borderTop: "1px solid #e2e8f0", background: "white" }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
-              {[
+              {([
                 { key: "uwb" as const, label: "UWB Badge", badge: "Beta", desc: "Employees carry a tag — excluded in real time" },
                 { key: "schedule" as const, label: "Shift Schedule Import", badge: null, desc: "Upload roster; clocked-in staff auto-flagged" },
                 { key: "dwell" as const, label: "Dwell Heuristic", badge: null, desc: "" },
-              ].map((m) => (
+              ]).map((m) => (
                 <div key={m.key} style={{ padding: 12, border: `1px solid ${excl[m.key] ? "#93c5fd" : "#e2e8f0"}`, borderRadius: 8, background: excl[m.key] ? "#eff6ff" : "#f8fafc" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                     <span style={{ fontSize: 12, fontWeight: 600, color: "#0f172a" }}>{m.label}</span>
                     <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                      {m.badge && <span className="badge badge-blue" style={{ fontSize: 9 }}>{m.badge}</span>}
-                      <label style={{ position: "relative", width: 32, height: 18, cursor: "pointer" }}>
-                        <input type="checkbox" checked={excl[m.key]} onChange={() => setExcl((s) => ({ ...s, [m.key]: !s[m.key] }))} style={{ opacity: 0, width: 0, height: 0 }} />
-                        <div style={{ position: "absolute", inset: 0, borderRadius: 9999, background: excl[m.key] ? "#3b82f6" : "#cbd5e1", transition: "background 0.2s" }}>
-                          <div style={{ position: "absolute", top: 2, left: excl[m.key] ? 14 : 2, width: 14, height: 14, borderRadius: "50%", background: "white", transition: "left 0.2s" }} />
-                        </div>
-                      </label>
+                      {m.badge && <Badge className="bg-blue-100 text-blue-700 border-0 text-[9px]">{m.badge}</Badge>}
+                      <Switch
+                        checked={excl[m.key]}
+                        onCheckedChange={() => setExcl((s) => ({ ...s, [m.key]: !s[m.key] }))}
+                      />
                     </div>
                   </div>
                   <div style={{ fontSize: 11, color: "#64748b" }}>
@@ -103,11 +105,16 @@ const OptimizationDashboard: React.FC = () => {
                     </div>
                   )}
                   {m.key === "schedule" && excl.schedule && (
-                    <button className="btn btn-outline" style={{ fontSize: 11, padding: "4px 8px", marginTop: 8, width: "100%" }}>+ Import roster CSV</button>
+                    <Button variant="outline" size="sm" className="mt-2 w-full text-xs">+ Import roster CSV</Button>
                   )}
                   {m.key === "dwell" && excl.dwell && (
-                    <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8 }}>
-                      <input type="range" min={15} max={90} value={excl.dwellMins} onChange={(e) => setExcl((s) => ({ ...s, dwellMins: +e.target.value }))} style={{ flex: 1 }} />
+                    <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8 }}>
+                      <Slider
+                        value={[excl.dwellMins]}
+                        onValueChange={(values) => setExcl((s) => ({ ...s, dwellMins: Array.isArray(values) ? values[0] : values }))}
+                        min={15} max={90} step={1}
+                        className="flex-1"
+                      />
                       <span style={{ fontSize: 11, fontWeight: 600, color: "#0f172a", width: 40 }}>{excl.dwellMins} min</span>
                     </div>
                   )}
@@ -118,17 +125,16 @@ const OptimizationDashboard: React.FC = () => {
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <Icon name="filter" size={13} color="#64748b" />
                 <span style={{ fontSize: 12, color: "#64748b" }}>Re-entry deduplication</span>
-                <label style={{ position: "relative", width: 32, height: 18, cursor: "pointer" }}>
-                  <input type="checkbox" checked={excl.reentry} onChange={() => setExcl((s) => ({ ...s, reentry: !s.reentry }))} style={{ opacity: 0, width: 0, height: 0 }} />
-                  <div style={{ position: "absolute", inset: 0, borderRadius: 9999, background: excl.reentry ? "#3b82f6" : "#cbd5e1" }}>
-                    <div style={{ position: "absolute", top: 2, left: excl.reentry ? 14 : 2, width: 14, height: 14, borderRadius: "50%", background: "white" }} />
-                  </div>
-                </label>
+                <Switch
+                  checked={excl.reentry}
+                  onCheckedChange={() => setExcl((s) => ({ ...s, reentry: !s.reentry }))}
+                />
               </div>
               <span style={{ fontSize: 12, color: "#64748b" }}>Session window:</span>
               {["30", "60", "90"].map((w) => (
-                <button key={w} onClick={() => setExcl((s) => ({ ...s, sessionWin: w }))}
-                  className={`btn ${excl.sessionWin === w ? "btn-primary" : "btn-outline"}`} style={{ padding: "4px 10px", fontSize: 11 }}>{w} min</button>
+                <Button key={w} size="sm" variant={excl.sessionWin === w ? "default" : "outline"}
+                  className="text-xs px-2.5 h-7"
+                  onClick={() => setExcl((s) => ({ ...s, sessionWin: w }))}>{w} min</Button>
               ))}
               {excl.reentry && <span style={{ fontSize: 11, color: "#16a34a", marginLeft: "auto" }}>~6.2% traffic reclassified</span>}
             </div>
@@ -137,7 +143,6 @@ const OptimizationDashboard: React.FC = () => {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        {/* Past heatmap */}
         <div className="card">
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: "#0f172a" }}>Last Week — {metric}</div>
           <div style={{ display: "grid", gridTemplateColumns: "60px repeat(7,1fr)", gap: 2 }}>
@@ -161,16 +166,15 @@ const OptimizationDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Staff planning */}
         <div className="card">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <div>
               <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>Staff Planning — {view === "Actual" ? "Predicted Traffic" : "Labor Hours"}</div>
               <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>Up to 45 days ahead</div>
             </div>
-            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <div style={{ display: "flex", gap: 6 }}>
               {["Actual", "Labor Hours"].map((v) => (
-                <button key={v} className={`btn ${view === v ? "btn-primary" : "btn-outline"}`} style={{ padding: "4px 10px", fontSize: 12 }} onClick={() => setView(v)}>{v}</button>
+                <Button key={v} size="sm" variant={view === v ? "default" : "outline"} className="text-xs" onClick={() => setView(v)}>{v}</Button>
               ))}
             </div>
           </div>
@@ -178,7 +182,7 @@ const OptimizationDashboard: React.FC = () => {
             <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12, padding: "8px 10px", background: "#f8fafc", borderRadius: 6 }}>
               <span style={{ fontSize: 13, color: "#64748b" }}>Weekly hours budget:</span>
               <input className="input" style={{ width: 80 }} value={hours} onChange={(e) => setHours(e.target.value)} />
-              <button className="btn btn-outline" style={{ padding: "6px 10px", fontSize: 12 }}>Apply</button>
+              <Button variant="outline" size="sm" className="text-xs">Apply</Button>
             </div>
           )}
           <div style={{ display: "grid", gridTemplateColumns: "60px repeat(7,1fr)", gap: 2 }}>

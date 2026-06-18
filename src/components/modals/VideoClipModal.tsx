@@ -1,6 +1,8 @@
-import React from "react";
 import Icon from "../ui/Icon";
 import { VideoClipContext } from "../../types";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface VideoClipModalProps {
   context: VideoClipContext;
@@ -8,40 +10,33 @@ interface VideoClipModalProps {
 }
 
 const VideoClipModal: React.FC<VideoClipModalProps> = ({ context, onClose }) => (
-  <div
-    style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1001, display: "flex", alignItems: "center", justifyContent: "center" }}
-    onClick={onClose}
-  >
-    <div
-      style={{ background: "white", borderRadius: 12, padding: 24, width: 540, boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>Video Clip — {context.zone}</div>
-          <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>{context.time} · Auto-retrieved from alert event</div>
-        </div>
-        <button className="btn btn-ghost" style={{ padding: 4 }} onClick={onClose}><Icon name="x" size={16} /></button>
-      </div>
-      <div style={{ background: "#0f172a", borderRadius: 8, height: 210, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16, border: "2px dashed #334155" }}>
-        <div style={{ textAlign: "center" }}>
+  <Dialog open onOpenChange={(o) => !o && onClose()}>
+    <DialogContent className="sm:max-w-[540px]">
+      <DialogHeader>
+        <DialogTitle>Video Clip — {context.zone}</DialogTitle>
+        <p className="text-xs text-slate-500">{context.time} · Auto-retrieved from alert event</p>
+      </DialogHeader>
+      <div className="bg-slate-900 rounded-lg h-52 flex items-center justify-center border-2 border-dashed border-slate-700 mb-2">
+        <div className="text-center">
           <Icon name="camera" size={40} color="#475569" />
-          <div style={{ color: "#94a3b8", fontSize: 13, marginTop: 8 }}>Clip: {context.time} — {context.zone}</div>
-          <div style={{ color: "#64748b", fontSize: 11, marginTop: 4 }}>Overhead sensor · 30-day retention</div>
-          <div style={{ marginTop: 12 }}><span className="badge badge-red" style={{ fontSize: 11 }}>● Playing</span></div>
+          <div className="text-slate-400 text-sm mt-2">Clip: {context.time} — {context.zone}</div>
+          <div className="text-slate-500 text-xs mt-1">Overhead sensor · 30-day retention</div>
+          <div className="mt-3">
+            <Badge variant="destructive" className="text-xs">● Playing</Badge>
+          </div>
         </div>
       </div>
-      <div style={{ padding: "10px 14px", background: "#fef9f9", borderRadius: 6, border: "1px solid #fecaca", marginBottom: 14, fontSize: 12 }}>
-        <strong style={{ color: "#991b1b" }}>{context.message}</strong>
-        <div style={{ color: "#64748b", marginTop: 2 }}>{context.detail}</div>
+      <div className="px-3 py-2 bg-red-50 rounded border border-red-200 text-sm mb-2">
+        <strong className="text-red-800">{context.message}</strong>
+        <p className="text-slate-500 text-xs mt-1">{context.detail}</p>
       </div>
-      <div style={{ display: "flex", gap: 8 }}>
-        <button className="btn btn-primary" style={{ flex: 1 }}>Export coaching package</button>
-        <button className="btn btn-outline">Download clip</button>
-        <button className="btn btn-outline" onClick={onClose}>Close</button>
+      <div className="flex gap-2">
+        <Button className="flex-1">Export coaching package</Button>
+        <Button variant="outline">Download clip</Button>
+        <Button variant="outline" onClick={onClose}>Close</Button>
       </div>
-    </div>
-  </div>
+    </DialogContent>
+  </Dialog>
 );
 
 export default VideoClipModal;

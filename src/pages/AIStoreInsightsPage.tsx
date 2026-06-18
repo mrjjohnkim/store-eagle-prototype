@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import Icon from "../components/ui/Icon";
 import VideoClipModal from "../components/modals/VideoClipModal";
 import { Alert, VideoClipContext } from "../types";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const alerts: Alert[] = [
   { time: "2:14 PM", zone: "Zone 3 — Accessories", severity: "high", message: "Conversion dropped 22% · 2–3PM", detail: "8 customers dwelled 2+ min, no associate contact" },
@@ -46,9 +49,14 @@ const AIStoreInsightsPage: React.FC = () => {
           <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Traffic + customer journey + video — unified operational view</p>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <span className="badge badge-red" style={{ fontSize: 12 }}>● 2 Active Alerts</span>
-          <select className="select"><option>Fashion Ave</option><option>Market Street</option><option>Harbor Walk</option></select>
-          <button className="btn btn-outline" style={{ fontSize: 13 }}>Today</button>
+          <Badge variant="destructive">● 2 Active Alerts</Badge>
+          <Select defaultValue="Fashion Ave">
+            <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {["Fashion Ave","Market Street","Harbor Walk"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="sm">Today</Button>
         </div>
       </div>
 
@@ -58,7 +66,7 @@ const AIStoreInsightsPage: React.FC = () => {
         <div style={{ flex: 1, fontSize: 13, color: "#991b1b" }}>
           <strong>Conversion dropped 22%</strong> — Zone 3 (Accessories) 2–3PM · 8 customers dwelled without associate contact
         </div>
-        <button className="btn" style={{ background: "#dc2626", color: "white", fontSize: 12, padding: "5px 14px" }} onClick={() => openClip(alerts[0])}>Pull Clip →</button>
+        <Button size="sm" style={{ background: "#dc2626" }} onClick={() => openClip(alerts[0])}>Pull Clip →</Button>
       </div>
 
       {/* 3-panel grid */}
@@ -81,7 +89,7 @@ const AIStoreInsightsPage: React.FC = () => {
             <div style={{ fontSize: 26, fontWeight: 700, color: "#dc2626" }}>$1,240</div>
             <div style={{ fontSize: 11, color: "#991b1b" }}>Today — high dwell / no purchase</div>
             <div style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>Zone 3 Accessories: 8 customers</div>
-            <button className="btn btn-outline" style={{ fontSize: 11, padding: "4px 10px", marginTop: 8, width: "100%" }} onClick={() => openClip(alerts[0])}>View zone footage →</button>
+            <Button variant="outline" size="sm" className="mt-2 w-full text-xs" onClick={() => openClip(alerts[0])}>View zone footage →</Button>
           </div>
           <div className="card" style={{ padding: 14 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", marginBottom: 8 }}>Associate Zone Compliance</div>

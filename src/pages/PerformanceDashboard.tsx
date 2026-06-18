@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import { SparkLine } from "../components/ui/Charts";
-import { Tooltip } from "../components/ui/Charts";
+import { SparkLine, Tooltip } from "../components/ui/Charts";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const PerformanceDashboard: React.FC = () => {
   const [store, setStore] = useState("Fashion Ave");
@@ -8,13 +10,20 @@ const PerformanceDashboard: React.FC = () => {
   const [signals, setSignals] = useState({ weather: true, events: false, promo: false });
   const toggleSignal = (k: keyof typeof signals) => setSignals((s) => ({ ...s, [k]: !s[k] }));
   const signalLabels: Record<string, string> = { weather: "🌧 Weather", events: "📅 Local Events", promo: "🏷 Promotions" };
+
   const powerHours = [
-    { hour: "9AM", traffic: 42, isPower: false }, { hour: "10AM", traffic: 68, isPower: false },
-    { hour: "11AM", traffic: 85, isPower: false }, { hour: "12PM", traffic: 124, isPower: true },
-    { hour: "1PM", traffic: 138, isPower: true }, { hour: "2PM", traffic: 131, isPower: true },
-    { hour: "3PM", traffic: 112, isPower: false }, { hour: "4PM", traffic: 98, isPower: false },
-    { hour: "5PM", traffic: 88, isPower: false }, { hour: "6PM", traffic: 72, isPower: false },
-    { hour: "7PM", traffic: 54, isPower: false }, { hour: "8PM", traffic: 38, isPower: false },
+    { hour: "9AM",  traffic: 42,  isPower: false },
+    { hour: "10AM", traffic: 68,  isPower: false },
+    { hour: "11AM", traffic: 85,  isPower: false },
+    { hour: "12PM", traffic: 124, isPower: true  },
+    { hour: "1PM",  traffic: 138, isPower: true  },
+    { hour: "2PM",  traffic: 131, isPower: true  },
+    { hour: "3PM",  traffic: 112, isPower: false },
+    { hour: "4PM",  traffic: 98,  isPower: false },
+    { hour: "5PM",  traffic: 88,  isPower: false },
+    { hour: "6PM",  traffic: 72,  isPower: false },
+    { hour: "7PM",  traffic: 54,  isPower: false },
+    { hour: "8PM",  traffic: 38,  isPower: false },
   ];
   const maxT = Math.max(...powerHours.map((h) => h.traffic));
 
@@ -26,20 +35,30 @@ const PerformanceDashboard: React.FC = () => {
           <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Single-store weekly view vs last year</p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <select className="select" value={store} onChange={(e) => setStore(e.target.value)}>
-            {["Fashion Ave","Market Street","Harbor Walk","Downtown Core","Lakeside Mall"].map((s) => <option key={s}>{s}</option>)}
-          </select>
-          <select className="select" value={week} onChange={(e) => setWeek(e.target.value)}>
-            {["This Week","Last Week","Two Weeks Ago"].map((w) => <option key={w}>{w}</option>)}
-          </select>
+          <Select value={store} onValueChange={(v) => v && setStore(v)}>
+            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {["Fashion Ave","Market Street","Harbor Walk","Downtown Core","Lakeside Mall"].map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={week} onValueChange={(v) => v && setWeek(v)}>
+            <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {["This Week","Last Week","Two Weeks Ago"].map((w) => (
+                <SelectItem key={w} value={w}>{w}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 }}>
         {[
-          { label: "Sales", thisW: "$28,410", delta: "-4.2%", up: false, data: [4200,3800,4100,3600,4500,5800,6400], ly: [4800,4100,4500,4200,4700,6200,7000] },
-          { label: "Conversion", thisW: "31.2%", delta: "+2.8%", up: true, data: [28,29,30,28,31,33,34], ly: [27,28,29,27,30,31,32] },
-          { label: "Avg Transaction", thisW: "$62.40", delta: "+5.1%", up: true, data: [58,59,61,57,63,65,66], ly: [55,57,59,56,60,62,64] },
+          { label: "Sales",           thisW: "$28,410", delta: "-4.2%", up: false, data: [4200,3800,4100,3600,4500,5800,6400], ly: [4800,4100,4500,4200,4700,6200,7000] },
+          { label: "Conversion",      thisW: "31.2%",   delta: "+2.8%", up: true,  data: [28,29,30,28,31,33,34],               ly: [27,28,29,27,30,31,32]               },
+          { label: "Avg Transaction", thisW: "$62.40",  delta: "+5.1%", up: true,  data: [58,59,61,57,63,65,66],               ly: [55,57,59,56,60,62,64]               },
         ].map((m) => (
           <div key={m.label} className="metric-card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
@@ -103,9 +122,9 @@ const PerformanceDashboard: React.FC = () => {
           <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", marginBottom: 10 }}>AI Recommendations</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {[
-              { signal: "Response time averaging 3.4 min in Section B", action: "Move 1 associate from stockroom to floor before 2PM", confidence: "High", color: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
-              { signal: "12 customers dwelled 2+ min in accessories without contact", action: "Reposition associate near center fixture — peak dwell window open now", confidence: "High", color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
-              { signal: "Traffic historically +18% on Thursdays vs. Mon–Wed", action: "Schedule 1 extra floor associate Thu 12–3PM", confidence: "Medium", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
+              { signal: "Response time averaging 3.4 min in Section B", action: "Move 1 associate from stockroom to floor before 2PM", confidence: "High",   color: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
+              { signal: "12 customers dwelled 2+ min in accessories without contact", action: "Reposition associate near center fixture — peak dwell window open now", confidence: "High",   color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
+              { signal: "Traffic historically +18% on Thursdays vs. Mon–Wed",         action: "Schedule 1 extra floor associate Thu 12–3PM",                        confidence: "Medium", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
             ].map((r, i) => (
               <div key={i} style={{ padding: "10px 14px", background: r.bg, border: `1px solid ${r.border}`, borderRadius: 8, display: "flex", gap: 12, alignItems: "flex-start" }}>
                 <div style={{ width: 6, borderRadius: 3, alignSelf: "stretch", background: r.color, flexShrink: 0 }} />
@@ -113,7 +132,7 @@ const PerformanceDashboard: React.FC = () => {
                   <div style={{ fontSize: 11, color: "#64748b", marginBottom: 2 }}>Signal: {r.signal}</div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>→ {r.action}</div>
                 </div>
-                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 9999, background: r.color, color: "white", flexShrink: 0 }}>{r.confidence}</span>
+                <Badge style={{ background: r.color, color: "white", border: 0, fontSize: 10 }}>{r.confidence}</Badge>
               </div>
             ))}
           </div>
@@ -123,8 +142,8 @@ const PerformanceDashboard: React.FC = () => {
           <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", marginBottom: 8 }}>Coaching Moments</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {[
-              { time: "Tue 2–3PM", event: "Response time spike — 3.4 min avg", metric: "vs. 1.8 min baseline" },
-              { time: "Mon 12–1PM", event: "Associate coverage gap — Zone 3", metric: "8 uncontacted dwellers" },
+              { time: "Tue 2–3PM",  event: "Response time spike — 3.4 min avg",      metric: "vs. 1.8 min baseline" },
+              { time: "Mon 12–1PM", event: "Associate coverage gap — Zone 3",          metric: "8 uncontacted dwellers" },
             ].map((c, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", background: "#f8fafc", borderRadius: 6, border: "1px solid #e2e8f0" }}>
                 <div style={{ fontSize: 11, color: "#64748b", width: 90, flexShrink: 0 }}>{c.time}</div>
@@ -132,9 +151,7 @@ const PerformanceDashboard: React.FC = () => {
                   <div style={{ fontSize: 12, fontWeight: 600, color: "#0f172a" }}>{c.event}</div>
                   <div style={{ fontSize: 11, color: "#64748b" }}>{c.metric}</div>
                 </div>
-                <button className="btn btn-outline" style={{ fontSize: 11, padding: "4px 10px", display: "flex", alignItems: "center", gap: 4 }}>
-                  🎥 Pull clip
-                </button>
+                <Button variant="outline" size="sm" className="text-xs gap-1">🎥 Pull clip</Button>
               </div>
             ))}
           </div>

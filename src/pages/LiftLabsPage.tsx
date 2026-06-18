@@ -2,6 +2,11 @@ import React, { useState } from "react";
 import Icon from "../components/ui/Icon";
 import { Tooltip } from "../components/ui/Charts";
 import { Experiment } from "../types";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const experimentsData: Record<string, Experiment[]> = {
   active: [
@@ -25,12 +30,20 @@ const experimentsData: Record<string, Experiment[]> = {
   ],
 };
 
+const statusBadge = (status: string) => {
+  if (status === "Complete")    return <Badge className="bg-emerald-100 text-emerald-700 border-0">{status}</Badge>;
+  if (status === "In progress") return <Badge className="bg-blue-100 text-blue-700 border-0">{status}</Badge>;
+  return <Badge variant="secondary">{status}</Badge>;
+};
+
+type TabId = "active" | "completed" | "drafts";
+
 const LiftLabsPage: React.FC = () => {
-  const [tab, setTab] = useState<"active" | "completed" | "drafts">("active");
+  const [tab, setTab] = useState<TabId>("active");
   const [selectedExp, setSelectedExp] = useState<Experiment | null>(null);
   const [showWizard, setShowWizard] = useState(false);
   const [wizardStep, setWizardStep] = useState(1);
-  const [newExp, setNewExp] = useState({ name: "", hypothesis: "", testStores: "", metric: "Traffic" });
+  const [newExp, setNewExp] = useState({ name: "", hypothesis: "", testStore: "Fashion Ave", controlStore: "Downtown Core", metric: "Traffic" });
 
   const allExp = experimentsData[tab] || [];
   const exp = selectedExp;
@@ -42,29 +55,27 @@ const LiftLabsPage: React.FC = () => {
           <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>Lift Labs</h2>
           <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Test store formats and fixtures before committing capital at scale</p>
         </div>
-        <button className="btn btn-primary" onClick={() => { setShowWizard(true); setWizardStep(1); }}>
+        <Button onClick={() => { setShowWizard(true); setWizardStep(1); }}>
           <Icon name="plus" size={14} /> New Experiment
-        </button>
+        </Button>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: 0, borderBottom: "2px solid #e2e8f0", marginBottom: 20 }}>
-        {[["active" as const, "Active", "2"], ["completed" as const, "Completed", "2"], ["drafts" as const, "Drafts", "1"]].map(([id, label, count]) => (
-          <div key={id} className={`tab ${tab === id ? "active" : ""}`} onClick={() => { setTab(id as "active" | "completed" | "drafts"); setSelectedExp(null); }}>
-            {label} <span style={{ marginLeft: 4, padding: "1px 7px", borderRadius: 9999, fontSize: 11, fontWeight: 600, background: "#f1f5f9", color: "#64748b" }}>{count}</span>
-          </div>
-        ))}
-      </div>
+      <Tabs value={tab} onValueChange={(v) => { setTab(v as TabId); setSelectedExp(null); }} className="mb-5">
+        <TabsList>
+          <TabsTrigger value="active">Active <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500">2</span></TabsTrigger>
+          <TabsTrigger value="completed">Completed <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500">2</span></TabsTrigger>
+          <TabsTrigger value="drafts">Drafts <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500">1</span></TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       <div style={{ display: "grid", gridTemplateColumns: exp ? "340px 1fr" : "1fr", gap: 16 }}>
-        {/* List */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {allExp.map((e) => (
             <div key={e.id} className="card" style={{ cursor: "pointer", border: selectedExp?.id === e.id ? "2px solid #3b82f6" : "1px solid #e2e8f0", padding: 16 }}
               onClick={() => setSelectedExp(selectedExp?.id === e.id ? null : e)}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 6 }}>
                 <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>{e.id}</span>
-                <span className={`badge ${e.status === "Complete" ? "badge-green" : e.status === "Draft" ? "badge-gray" : "badge-blue"}`}>{e.status}</span>
+                {statusBadge(e.status)}
               </div>
               <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", marginBottom: 4 }}>{e.name}</div>
               <div style={{ fontSize: 12, color: "#64748b", marginBottom: 2 }}>{e.stores}</div>
@@ -77,7 +88,6 @@ const LiftLabsPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Lift report detail */}
         {exp && exp.results && (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div className="card">
@@ -107,8 +117,6 @@ const LiftLabsPage: React.FC = () => {
                   );
                 })}
               </div>
-
-              {/* Annotation timeline */}
               {exp.annotations && (
                 <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 12 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: "#0f172a", marginBottom: 8 }}>Annotation Timeline</div>
@@ -134,7 +142,6 @@ const LiftLabsPage: React.FC = () => {
               )}
             </div>
 
-            {/* Zone ROI card */}
             <div className="card" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#15803d", marginBottom: 8 }}>💰 Zone ROI Attribution</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
@@ -151,7 +158,6 @@ const LiftLabsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Cross-store fixture ranking */}
             <div className="card">
               <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", marginBottom: 12 }}>Cross-Store Fixture Performance Ranking</div>
               {[
@@ -167,92 +173,100 @@ const LiftLabsPage: React.FC = () => {
                     <div style={{ fontSize: 11, color: "#64748b" }}>{f.stores}</div>
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{f.dwell}</div>
-                  <span className={`badge ${f.status === "top" ? "badge-green" : f.status === "mid" ? "badge-blue" : "badge-gray"}`}>
-                    {f.status === "top" ? "Top quartile" : f.status === "mid" ? "Mid" : "Below median"}
-                  </span>
+                  {f.status === "top" && <Badge className="bg-emerald-100 text-emerald-700 border-0">Top quartile</Badge>}
+                  {f.status === "mid" && <Badge className="bg-blue-100 text-blue-700 border-0">Mid</Badge>}
+                  {f.status === "low" && <Badge variant="secondary">Below median</Badge>}
                 </div>
               ))}
             </div>
 
             <div style={{ display: "flex", gap: 8 }}>
-              <button className="btn btn-primary"><Icon name="download" size={14} /> Export Capital Justification Report</button>
-              <button className="btn btn-outline" onClick={() => setSelectedExp(null)}>Close</button>
+              <Button><Icon name="download" size={14} /> Export Capital Justification Report</Button>
+              <Button variant="outline" onClick={() => setSelectedExp(null)}>Close</Button>
             </div>
           </div>
         )}
       </div>
 
       {/* New experiment wizard */}
-      {showWizard && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowWizard(false)}>
-          <div style={{ background: "white", borderRadius: 12, padding: 28, width: 520, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a" }}>New Experiment — Step {wizardStep} of 4</div>
-              <button className="btn btn-ghost" style={{ padding: 4 }} onClick={() => setShowWizard(false)}><Icon name="x" size={16} /></button>
+      <Dialog open={showWizard} onOpenChange={(o) => !o && setShowWizard(false)}>
+        <DialogContent className="sm:max-w-[520px]">
+          <DialogHeader>
+            <DialogTitle>New Experiment — Step {wizardStep} of 4</DialogTitle>
+          </DialogHeader>
+          <div className="flex gap-1 mb-4">
+            {[1, 2, 3, 4].map((s) => (
+              <div key={s} className="flex-1 h-1 rounded-full" style={{ background: s <= wizardStep ? "#0f172a" : "#e2e8f0" }} />
+            ))}
+          </div>
+
+          {wizardStep === 1 && (
+            <div className="flex flex-col gap-3">
+              <div className="text-sm font-semibold text-slate-900 mb-1">Name &amp; Hypothesis</div>
+              <div>
+                <label className="text-xs text-slate-500 block mb-1">Experiment Name</label>
+                <input className="input" placeholder="e.g. Holiday Endcap Relocation" value={newExp.name} onChange={(e) => setNewExp({ ...newExp, name: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-xs text-slate-500 block mb-1">Hypothesis</label>
+                <input className="input" placeholder="Moving the endcap will increase zone dwell by 15%" value={newExp.hypothesis} onChange={(e) => setNewExp({ ...newExp, hypothesis: e.target.value })} />
+              </div>
             </div>
-            <div style={{ display: "flex", gap: 4, marginBottom: 20 }}>
-              {[1, 2, 3, 4].map((s) => (
-                <div key={s} style={{ flex: 1, height: 4, borderRadius: 2, background: s <= wizardStep ? "#0f172a" : "#e2e8f0" }} />
+          )}
+          {wizardStep === 2 && (
+            <div className="flex flex-col gap-3">
+              <div className="text-sm font-semibold text-slate-900 mb-1">Test &amp; Control Stores</div>
+              <div>
+                <label className="text-xs text-slate-500 block mb-1">Test Store(s)</label>
+                <Select value={newExp.testStore} onValueChange={(v) => v && setNewExp({ ...newExp, testStore: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["Fashion Ave","Market Street","Harbor Walk"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs text-slate-500 block mb-1">Control Store(s)</label>
+                <Select value={newExp.controlStore} onValueChange={(v) => v && setNewExp({ ...newExp, controlStore: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["Downtown Core","Lakeside Mall"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          {wizardStep === 3 && (
+            <div className="flex flex-col gap-3">
+              <div className="text-sm font-semibold text-slate-900 mb-1">Test Period</div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-xs text-slate-500 block mb-1">Start Date</label><input type="date" className="input" /></div>
+                <div><label className="text-xs text-slate-500 block mb-1">End Date</label><input type="date" className="input" /></div>
+              </div>
+            </div>
+          )}
+          {wizardStep === 4 && (
+            <div className="flex flex-col gap-3">
+              <div className="text-sm font-semibold text-slate-900 mb-1">Primary Metric</div>
+              {["Traffic","Zone Dwell","Conversion","Revenue per Sq Ft","Capture Rate"].map((m) => (
+                <label key={m} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="metric" checked={newExp.metric === m} onChange={() => setNewExp({ ...newExp, metric: m })} />
+                  <span className="text-sm text-slate-700">{m}</span>
+                </label>
               ))}
             </div>
-            {wizardStep === 1 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", marginBottom: 4 }}>Name &amp; Hypothesis</div>
-                <div>
-                  <label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Experiment Name</label>
-                  <input className="input" placeholder="e.g. Holiday Endcap Relocation" value={newExp.name} onChange={(e) => setNewExp({ ...newExp, name: e.target.value })} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Hypothesis</label>
-                  <input className="input" placeholder="Moving the endcap will increase zone dwell by 15%" value={newExp.hypothesis} onChange={(e) => setNewExp({ ...newExp, hypothesis: e.target.value })} />
-                </div>
-              </div>
-            )}
-            {wizardStep === 2 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", marginBottom: 4 }}>Test &amp; Control Stores</div>
-                <div>
-                  <label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Test Store(s)</label>
-                  <select className="select" style={{ width: "100%" }}><option>Fashion Ave</option><option>Market Street</option><option>Harbor Walk</option></select>
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Control Store(s)</label>
-                  <select className="select" style={{ width: "100%" }}><option>Downtown Core</option><option>Lakeside Mall</option></select>
-                </div>
-              </div>
-            )}
-            {wizardStep === 3 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", marginBottom: 4 }}>Test Period</div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div><label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>Start Date</label><input type="date" className="input" /></div>
-                  <div><label style={{ fontSize: 12, color: "#64748b", display: "block", marginBottom: 4 }}>End Date</label><input type="date" className="input" /></div>
-                </div>
-              </div>
-            )}
-            {wizardStep === 4 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", marginBottom: 4 }}>Primary Metric</div>
-                {["Traffic", "Zone Dwell", "Conversion", "Revenue per Sq Ft", "Capture Rate"].map((m) => (
-                  <label key={m} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-                    <input type="radio" name="metric" checked={newExp.metric === m} onChange={() => setNewExp({ ...newExp, metric: m })} />
-                    <span style={{ fontSize: 13, color: "#374151" }}>{m}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-            <div style={{ display: "flex", gap: 8, marginTop: 20, justifyContent: "flex-end" }}>
-              {wizardStep > 1 && <button className="btn btn-outline" onClick={() => setWizardStep((s) => s - 1)}>Back</button>}
-              {wizardStep < 4
-                ? <button className="btn btn-primary" onClick={() => setWizardStep((s) => s + 1)}>Next →</button>
-                : <button className="btn btn-primary" onClick={() => setShowWizard(false)}>Create Experiment</button>}
-            </div>
+          )}
+
+          <div className="flex gap-2 mt-4 justify-end">
+            {wizardStep > 1 && <Button variant="outline" onClick={() => setWizardStep((s) => s - 1)}>Back</Button>}
+            {wizardStep < 4
+              ? <Button onClick={() => setWizardStep((s) => s + 1)}>Next →</Button>
+              : <Button onClick={() => setShowWizard(false)}>Create Experiment</Button>}
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
 export default LiftLabsPage;
-
