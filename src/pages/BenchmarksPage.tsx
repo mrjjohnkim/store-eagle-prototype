@@ -3,6 +3,7 @@ import React, { useState } from "react";
 const BenchmarksPage: React.FC = () => {
   const [region, setRegion] = useState("US");
   const [category, setCategory] = useState("Specialty Apparel");
+  const [hoveredBar, setHoveredBar] = useState<{ month: number; isYours: boolean } | null>(null);
   const benchmarks = [
     { month: "Jan", yours: 82, industry: 100 }, { month: "Feb", yours: 88, industry: 95 },
     { month: "Mar", yours: 95, industry: 105 }, { month: "Apr", yours: 91, industry: 98 },
@@ -36,16 +37,45 @@ const BenchmarksPage: React.FC = () => {
         <div className="card">
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, color: "#0f172a" }}>Footfall Index — {category} ({region})</div>
           <div style={{ fontSize: 12, color: "#64748b", marginBottom: 16 }}>Index 100 = same period baseline. Your stores vs. industry average.</div>
-          <div style={{ display: "flex", gap: 6, alignItems: "flex-end", height: 160 }}>
-            {benchmarks.map((b) => (
-              <div key={b.month} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <div style={{ width: "100%", display: "flex", gap: 2, alignItems: "flex-end", height: 130 }}>
-                  <div style={{ flex: 1, background: "#3b82f6", borderRadius: "3px 3px 0 0", height: `${(b.yours / maxB) * 100}%` }} title={`Your stores: ${b.yours}`} />
-                  <div style={{ flex: 1, background: "#e2e8f0", borderRadius: "3px 3px 0 0", height: `${(b.industry / maxB) * 100}%` }} title={`Industry: ${b.industry}`} />
+          <div style={{ display: "flex", gap: 6, alignItems: "flex-end" }}>
+            {benchmarks.map((b, i) => {
+              const delta = b.yours - b.industry;
+              const up = delta >= 0;
+              return (
+                <div key={b.month} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                  {/* Delta badge */}
+                  <div style={{ fontSize: 9, fontWeight: 700, color: up ? "#16a34a" : "#dc2626", background: up ? "#dcfce7" : "#fee2e2", padding: "1px 4px", borderRadius: 3, whiteSpace: "nowrap", marginBottom: 2 }}>
+                    {up ? "+" : ""}{delta}
+                  </div>
+                  {/* Bars */}
+                  <div style={{ width: "100%", display: "flex", gap: 2, alignItems: "flex-end", height: 120 }}>
+                    <div
+                      style={{ flex: 1, background: "#3b82f6", borderRadius: "3px 3px 0 0", height: `${(b.yours / maxB) * 100}%`, position: "relative", cursor: "default" }}
+                      onMouseEnter={() => setHoveredBar({ month: i, isYours: true })}
+                      onMouseLeave={() => setHoveredBar(null)}
+                    >
+                      {hoveredBar?.month === i && hoveredBar.isYours && (
+                        <div style={{ position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)", background: "#0f172a", color: "white", padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
+                          {b.yours}
+                        </div>
+                      )}
+                    </div>
+                    <div
+                      style={{ flex: 1, background: "#e2e8f0", borderRadius: "3px 3px 0 0", height: `${(b.industry / maxB) * 100}%`, position: "relative", cursor: "default" }}
+                      onMouseEnter={() => setHoveredBar({ month: i, isYours: false })}
+                      onMouseLeave={() => setHoveredBar(null)}
+                    >
+                      {hoveredBar?.month === i && !hoveredBar.isYours && (
+                        <div style={{ position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)", background: "#0f172a", color: "white", padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
+                          {b.industry}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 2 }}>{b.month}</div>
                 </div>
-                <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>{b.month}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div style={{ display: "flex", gap: 24, marginTop: 12 }}>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
