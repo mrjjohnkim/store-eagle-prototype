@@ -43,6 +43,7 @@ const LiftLabsPage: React.FC = () => {
   const [selectedExp, setSelectedExp] = useState<Experiment | null>(null);
   const [showWizard, setShowWizard] = useState(false);
   const [wizardStep, setWizardStep] = useState(1);
+  const [hoveredLift, setHoveredLift] = useState<string | null>(null);
   const [newExp, setNewExp] = useState({ name: "", hypothesis: "", testStore: "Fashion Ave", controlStore: "Downtown Core", metric: "Traffic" });
 
   const allExp = experimentsData[tab] || [];
@@ -102,11 +103,31 @@ const LiftLabsPage: React.FC = () => {
                       <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8, fontWeight: 600 }}>{label}</div>
                       <div style={{ display: "flex", gap: 4, alignItems: "flex-end", height: 80, justifyContent: "center" }}>
                         <div style={{ width: 28, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                          <div style={{ width: "100%", background: "#3b82f6", borderRadius: "3px 3px 0 0", height: `${(exp.results!.test[i] / maxV) * 72}px` }} />
+                          <div
+                            style={{ width: "100%", background: "#3b82f6", borderRadius: "3px 3px 0 0", height: `${(exp.results!.test[i] / maxV) * 72}px`, position: "relative", cursor: "default" }}
+                            onMouseEnter={() => setHoveredLift(`${i}-test`)}
+                            onMouseLeave={() => setHoveredLift(null)}
+                          >
+                            {hoveredLift === `${i}-test` && (
+                              <div style={{ position: "absolute", top: -20, left: "50%", transform: "translateX(-50%)", background: "#0f172a", color: "white", padding: "2px 5px", borderRadius: 4, fontSize: 10, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
+                                {exp.results!.test[i]}
+                              </div>
+                            )}
+                          </div>
                           <div style={{ fontSize: 9, color: "#94a3b8" }}>Test</div>
                         </div>
                         <div style={{ width: 28, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                          <div style={{ width: "100%", background: "#cbd5e1", borderRadius: "3px 3px 0 0", height: `${(exp.results!.control[i] / maxV) * 72}px` }} />
+                          <div
+                            style={{ width: "100%", background: "#cbd5e1", borderRadius: "3px 3px 0 0", height: `${(exp.results!.control[i] / maxV) * 72}px`, position: "relative", cursor: "default" }}
+                            onMouseEnter={() => setHoveredLift(`${i}-ctrl`)}
+                            onMouseLeave={() => setHoveredLift(null)}
+                          >
+                            {hoveredLift === `${i}-ctrl` && (
+                              <div style={{ position: "absolute", top: -20, left: "50%", transform: "translateX(-50%)", background: "#0f172a", color: "white", padding: "2px 5px", borderRadius: 4, fontSize: 10, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
+                                {exp.results!.control[i]}
+                              </div>
+                            )}
+                          </div>
                           <div style={{ fontSize: 9, color: "#94a3b8" }}>Ctrl</div>
                         </div>
                       </div>

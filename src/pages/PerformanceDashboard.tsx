@@ -8,6 +8,7 @@ const PerformanceDashboard: React.FC = () => {
   const [store, setStore] = useState("Fashion Ave");
   const [week, setWeek] = useState("This Week");
   const [signals, setSignals] = useState({ weather: true, events: false, promo: false });
+  const [hoveredBar, setHoveredBar] = useState<number | null>(null);
   const toggleSignal = (k: keyof typeof signals) => setSignals((s) => ({ ...s, [k]: !s[k] }));
   const signalLabels: Record<string, string> = { weather: "🌧 Weather", events: "📅 Local Events", promo: "🏷 Promotions" };
 
@@ -106,11 +107,20 @@ const PerformanceDashboard: React.FC = () => {
           </div>
         </div>
         <div style={{ display: "flex", gap: 4, alignItems: "flex-end", height: 100 }}>
-          {powerHours.map((h) => (
+          {powerHours.map((h, i) => (
             <div key={h.hour} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div style={{ width: "100%", height: 80, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
-                <div style={{ width: "100%", height: `${(h.traffic / maxT) * 100}%`, background: h.isPower ? "#22c55e" : "#3b82f6", borderRadius: "3px 3px 0 0", opacity: h.isPower ? 1 : 0.6, position: "relative" }}>
-                  {h.isPower && <div style={{ position: "absolute", top: -16, left: "50%", transform: "translateX(-50%)", fontSize: 10, color: "#16a34a", fontWeight: 700, whiteSpace: "nowrap" }}>★ Peak</div>}
+                <div
+                  style={{ width: "100%", height: `${(h.traffic / maxT) * 100}%`, background: h.isPower ? "#22c55e" : "#3b82f6", borderRadius: "3px 3px 0 0", opacity: h.isPower ? 1 : 0.6, position: "relative", cursor: "default" }}
+                  onMouseEnter={() => setHoveredBar(i)}
+                  onMouseLeave={() => setHoveredBar(null)}
+                >
+                  {h.isPower && hoveredBar !== i && <div style={{ position: "absolute", top: -16, left: "50%", transform: "translateX(-50%)", fontSize: 10, color: "#16a34a", fontWeight: 700, whiteSpace: "nowrap" }}>★ Peak</div>}
+                  {hoveredBar === i && (
+                    <div style={{ position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)", background: "#0f172a", color: "white", padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
+                      {h.traffic}
+                    </div>
+                  )}
                 </div>
               </div>
               <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>{h.hour}</div>
