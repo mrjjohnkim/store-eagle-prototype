@@ -36,19 +36,19 @@ const PerformanceDashboard: React.FC = () => {
           <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Single-store weekly view vs last year</p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <Select value={store} onValueChange={(v) => v && setStore(v)}>
-            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {["Cedar Crossing","Bayfront Promenade","Maple Grove Plaza","Union Heights","Brookhaven Center"].map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           <Select value={week} onValueChange={(v) => v && setWeek(v)}>
             <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               {["This Week","Last Week","Two Weeks Ago"].map((w) => (
                 <SelectItem key={w} value={w}>{w}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={store} onValueChange={(v) => v && setStore(v)}>
+            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {["Cedar Crossing","Bayfront Promenade","Maple Grove Plaza","Union Heights","Brookhaven Center"].map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
               ))}
             </SelectContent>
           </Select>
