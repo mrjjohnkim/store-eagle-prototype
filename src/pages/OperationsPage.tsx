@@ -137,6 +137,9 @@ const OperationsPage: React.FC<OperationsPageProps> = ({ navigate }) => {
           <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Live store performance overview</p>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {["Today", "Yesterday", "This Week", "This Month"].map((r) => (
+            <button key={r} className={`btn ${dateRange === r ? "btn-primary" : "btn-outline"}`} style={{ padding: "6px 12px", fontSize: 13 }} onClick={() => setDateRange(r)}>{r}</button>
+          ))}
           <Select value={region} onValueChange={(v) => v && setRegion(v)}>
             <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -145,9 +148,6 @@ const OperationsPage: React.FC<OperationsPageProps> = ({ navigate }) => {
               ))}
             </SelectContent>
           </Select>
-          {["Today", "Yesterday", "This Week", "This Month"].map((r) => (
-            <button key={r} className={`btn ${dateRange === r ? "btn-primary" : "btn-outline"}`} style={{ padding: "6px 12px", fontSize: 13 }} onClick={() => setDateRange(r)}>{r}</button>
-          ))}
         </div>
       </div>
 

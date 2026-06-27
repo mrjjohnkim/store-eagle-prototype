@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { SparkLine } from "../components/ui/Charts";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const TrafficPage: React.FC = () => {
   const [compare, setCompare] = useState("Last Year");
+  const [region, setRegion] = useState("All Regions");
   const [hoveredBar, setHoveredBar] = useState<{ day: number; isThis: boolean } | null>(null);
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const thisWeek = [1240, 1180, 1350, 1420, 1680, 2210, 1890];
@@ -22,11 +24,19 @@ const TrafficPage: React.FC = () => {
           <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>Traffic Dashboard</h2>
           <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Live footfall data across your estate</p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <span style={{ fontSize: 13, color: "#64748b", alignSelf: "center" }}>Compare to:</span>
           {["Last Week", "Last Year", "Last Last Year"].map((c) => (
             <button key={c} className={`btn ${compare === c ? "btn-primary" : "btn-outline"}`} style={{ padding: "6px 12px", fontSize: 13 }} onClick={() => setCompare(c)}>{c}</button>
           ))}
+          <Select value={region} onValueChange={(v) => v && setRegion(v)}>
+            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {["All Regions", "Northeast", "West", "South", "Midwest"].map((r) => (
+                <SelectItem key={r} value={r}>{r}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
