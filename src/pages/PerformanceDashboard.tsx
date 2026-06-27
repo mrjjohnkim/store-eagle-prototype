@@ -1,14 +1,71 @@
 import React, { useState } from "react";
-import { SparkLine, Tooltip } from "../components/ui/Charts";
+import { Tooltip } from "../components/ui/Charts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+type HoveredCell = { metric: string; day: number; series: "actual" | "peers" | "ly" } | null;
+
+interface MetricChartConfig {
+  key: string;
+  label: string;
+  barColor: string;
+  data: number[];
+  ly: number[];
+  peers: number[];
+  niceMax: number;
+  tickStep: number;
+  aggregate: "sum" | "avg";
+  deltaUnit: "pct" | "pt";
+  yFormat: (v: number) => string;
+  pointFormat: (v: number) => string;
+  totalFormat: (v: number) => string;
+}
+
+const sum = (arr: number[]) => arr.reduce((a, b) => a + b, 0);
+const avg = (arr: number[]) => sum(arr) / arr.length;
+
+const metricCharts: MetricChartConfig[] = [
+  {
+    key: "sales", label: "Sales", barColor: "#0ea5b7",
+    data: [4200, 3800, 4100, 3600, 4500, 5800, 6400],
+    ly: [4800, 4100, 4500, 4200, 4700, 6200, 7000],
+    peers: [4500, 4000, 4350, 4000, 4600, 6000, 6700],
+    niceMax: 8000, tickStep: 2000, aggregate: "sum", deltaUnit: "pct",
+    yFormat: (v) => v === 0 ? "$0" : `$${(v / 1000).toFixed(1)}k`,
+    pointFormat: (v) => `$${Math.round(v).toLocaleString()}`,
+    totalFormat: (v) => `$${Math.round(v).toLocaleString()}`,
+  },
+  {
+    key: "conversion", label: "Conversion Rate", barColor: "#0ea5b7",
+    data: [28, 29, 30, 28, 31, 33, 34],
+    ly: [27, 28, 29, 27, 30, 31, 32],
+    peers: [29, 30, 31, 29, 32, 34, 35],
+    niceMax: 40, tickStep: 10, aggregate: "avg", deltaUnit: "pt",
+    yFormat: (v) => `${v.toFixed(0)}%`,
+    pointFormat: (v) => `${v.toFixed(0)}%`,
+    totalFormat: (v) => `${v.toFixed(1)}%`,
+  },
+  {
+    key: "atv", label: "Avg Transaction Value", barColor: "#0ea5b7",
+    data: [58, 59, 61, 57, 63, 65, 66],
+    ly: [55, 57, 59, 56, 60, 62, 64],
+    peers: [60, 61, 63, 59, 65, 67, 68],
+    niceMax: 80, tickStep: 20, aggregate: "avg", deltaUnit: "pct",
+    yFormat: (v) => `$${v.toFixed(0)}`,
+    pointFormat: (v) => `$${v.toFixed(0)}`,
+    totalFormat: (v) => `$${v.toFixed(2)}`,
+  },
+];
 
 const PerformanceDashboard: React.FC = () => {
   const [store, setStore] = useState("Cedar Crossing");
   const [week, setWeek] = useState("This Week");
   const [signals, setSignals] = useState({ weather: true, events: false, promo: false });
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
+  const [hoveredCell, setHoveredCell] = useState<HoveredCell>(null);
   const toggleSignal = (k: keyof typeof signals) => setSignals((s) => ({ ...s, [k]: !s[k] }));
   const signalLabels: Record<string, string> = { weather: "🌧 Weather", events: "📅 Local Events", promo: "🏷 Promotions" };
 
@@ -27,6 +84,89 @@ const PerformanceDashboard: React.FC = () => {
     { hour: "8PM",  traffic: 38,  isPower: false },
   ];
   const maxT = Math.max(...powerHours.map((h) => h.traffic));
+
+  const MetricBarChart: React.FC<{ cfg: MetricChartConfig }> = ({ cfg }) => {
+    const aggFn = cfg.aggregate === "sum" ? sum : avg;
+    const totalVal = aggFn(cfg.data);
+    const lyVal = aggFn(cfg.ly);
+    const peersVal = aggFn(cfg.peers);
+    const deltaLY = cfg.deltaUnit === "pt" ? totalVal - lyVal : ((totalVal - lyVal) / lyVal) * 100;
+    const deltaPeers = cfg.deltaUnit === "pt" ? totalVal - peersVal : ((totalVal - peersVal) / peersVal) * 100;
+    const fmtDelta = (d: number) => cfg.deltaUnit === "pt" ? `${Math.abs(d).toFixed(1)}pt` : `${Math.abs(Math.round(d))}%`;
+    const ticks = [0, cfg.tickStep, cfg.tickStep * 2, cfg.tickStep * 3, cfg.niceMax];
+    const chartHeight = 150;
+
+    return (
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>{cfg.label}</div>
+          <div style={{ display: "flex", gap: 16, alignItems: "center", fontSize: 12 }}>
+            <span className={deltaLY >= 0 ? "metric-delta-green" : "metric-delta-red"}>{deltaLY >= 0 ? "▲" : "▼"} {fmtDelta(deltaLY)} vs LY</span>
+            <span className={deltaPeers >= 0 ? "metric-delta-green" : "metric-delta-red"}>{deltaPeers >= 0 ? "▲" : "▼"} {fmtDelta(deltaPeers)} vs Peers</span>
+            <span style={{ fontWeight: 700, color: "#0f172a" }}>Total: {cfg.totalFormat(totalVal)}</span>
+          </div>
+        </div>
+
+        <div style={{ display: "flex" }}>
+          <div style={{ width: 50, display: "flex", flexDirection: "column", justifyContent: "space-between", height: chartHeight, fontSize: 10, color: "#94a3b8", textAlign: "right", paddingRight: 8, flexShrink: 0 }}>
+            {[...ticks].reverse().map((t) => <div key={t}>{cfg.yFormat(t)}</div>)}
+          </div>
+          <div style={{ flex: 1, position: "relative", height: chartHeight }}>
+            {ticks.map((t, ti) => (
+              <div key={ti} style={{ position: "absolute", left: 0, right: 0, top: `${100 - (t / cfg.niceMax) * 100}%`, borderTop: ti === 0 ? "1px solid #cbd5e1" : "1px solid #f1f5f9" }} />
+            ))}
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-end" }}>
+              {days.map((d, i) => (
+                <div key={d} style={{ flex: 1, height: "100%", position: "relative" }}>
+                  <div
+                    style={{ position: "absolute", bottom: 0, left: "30%", right: "30%", height: `${(cfg.data[i] / cfg.niceMax) * 100}%`, background: cfg.barColor, borderRadius: "3px 3px 0 0", cursor: "default" }}
+                    onMouseEnter={() => setHoveredCell({ metric: cfg.key, day: i, series: "actual" })}
+                    onMouseLeave={() => setHoveredCell(null)}
+                  >
+                    {hoveredCell?.metric === cfg.key && hoveredCell.day === i && hoveredCell.series === "actual" && (
+                      <div style={{ position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)", background: "#0f172a", color: "white", padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
+                        {cfg.pointFormat(cfg.data[i])}
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    style={{ position: "absolute", left: "12%", right: "12%", height: 3, background: "#7dd3fc", bottom: `${(cfg.peers[i] / cfg.niceMax) * 100}%`, borderRadius: 2, cursor: "default" }}
+                    onMouseEnter={() => setHoveredCell({ metric: cfg.key, day: i, series: "peers" })}
+                    onMouseLeave={() => setHoveredCell(null)}
+                  >
+                    {hoveredCell?.metric === cfg.key && hoveredCell.day === i && hoveredCell.series === "peers" && (
+                      <div style={{ position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)", background: "#0369a1", color: "white", padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
+                        Peers: {cfg.pointFormat(cfg.peers[i])}
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    style={{ position: "absolute", left: "12%", right: "12%", height: 3, background: "#991b1b", bottom: `${(cfg.ly[i] / cfg.niceMax) * 100}%`, borderRadius: 2, cursor: "default" }}
+                    onMouseEnter={() => setHoveredCell({ metric: cfg.key, day: i, series: "ly" })}
+                    onMouseLeave={() => setHoveredCell(null)}
+                  >
+                    {hoveredCell?.metric === cfg.key && hoveredCell.day === i && hoveredCell.series === "ly" && (
+                      <div style={{ position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)", background: "#991b1b", color: "white", padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
+                        LY: {cfg.pointFormat(cfg.ly[i])}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div style={{ display: "flex", marginLeft: 58 }}>
+          {days.map((d) => <div key={d} style={{ flex: 1, textAlign: "center", fontSize: 11, color: "#94a3b8" }}>{d}</div>)}
+        </div>
+        <div style={{ display: "flex", gap: 16, marginTop: 10, marginLeft: 58, fontSize: 11, color: "#64748b" }}>
+          <span><span style={{ color: cfg.barColor }}>■</span> This Week</span>
+          <span><span style={{ color: "#7dd3fc" }}>▬</span> Peers</span>
+          <span><span style={{ color: "#991b1b" }}>▬</span> Last Year</span>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -55,36 +195,20 @@ const PerformanceDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 }}>
-        {[
-          { label: "Sales",           thisW: "$28,410", delta: "-4.2%", up: false, data: [4200,3800,4100,3600,4500,5800,6400], ly: [4800,4100,4500,4200,4700,6200,7000] },
-          { label: "Conversion",      thisW: "31.2%",   delta: "+2.8%", up: true,  data: [28,29,30,28,31,33,34],               ly: [27,28,29,27,30,31,32]               },
-          { label: "Avg Transaction", thisW: "$62.40",  delta: "+5.1%", up: true,  data: [58,59,61,57,63,65,66],               ly: [55,57,59,56,60,62,64]               },
-        ].map((m) => (
-          <div key={m.label} className="metric-card">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
-              <div className="metric-label">{m.label}</div>
-              <div className={m.up ? "metric-delta-green" : "metric-delta-red"}>{m.up ? "▲" : "▼"} {m.delta} vs LY</div>
-            </div>
-            <div className="metric-value" style={{ fontSize: 22, marginBottom: 8 }}>{m.thisW}</div>
-            <SparkLine data={m.data} lastYear={m.ly} color={m.up ? "#3b82f6" : "#f43f5e"} />
-            <div style={{ display: "flex", gap: 8, marginTop: 4, fontSize: 11, color: "#94a3b8" }}>
-              <span style={{ color: m.up ? "#3b82f6" : "#f43f5e" }}>— This week</span>
-              <span>— Last year</span>
-            </div>
-          </div>
-        ))}
-        <div className="metric-card" style={{ border: "1px solid #fecaca", background: "#fef9f9" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+      <div className="card" style={{ marginBottom: 16, border: "1px solid #fecaca", background: "#fef9f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <div className="metric-label">Revenue at Risk</div>
             <Tooltip text="Customers who dwelled 2+ min without associate contact and left without purchasing">
               <span style={{ fontSize: 11, color: "#94a3b8", cursor: "help" }}>?</span>
             </Tooltip>
           </div>
           <div className="metric-value" style={{ fontSize: 22, color: "#dc2626" }}>$840</div>
-          <div className="metric-delta-red">▼ 14 uncontacted dwellers today</div>
         </div>
+        <div className="metric-delta-red">▼ 14 uncontacted dwellers today</div>
       </div>
+
+      {metricCharts.map((cfg) => <MetricBarChart key={cfg.key} cfg={cfg} />)}
 
       <div className="card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -128,42 +252,44 @@ const PerformanceDashboard: React.FC = () => {
           ))}
         </div>
 
-        <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", marginBottom: 10 }}>AI Recommendations</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {[
-              { signal: "Response time averaging 3.4 min in Section B", action: "Move 1 associate from stockroom to floor before 2PM", confidence: "High",   color: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
-              { signal: "12 customers dwelled 2+ min in accessories without contact", action: "Reposition associate near center fixture — peak dwell window open now", confidence: "High",   color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
-              { signal: "Traffic historically +18% on Thursdays vs. Mon–Wed",         action: "Schedule 1 extra floor associate Thu 12–3PM",                        confidence: "Medium", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
-            ].map((r, i) => (
-              <div key={i} style={{ padding: "10px 14px", background: r.bg, border: `1px solid ${r.border}`, borderRadius: 8, display: "flex", gap: 12, alignItems: "flex-start" }}>
-                <div style={{ width: 6, borderRadius: 3, alignSelf: "stretch", background: r.color, flexShrink: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 11, color: "#64748b", marginBottom: 2 }}>Signal: {r.signal}</div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>→ {r.action}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 16 }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", marginBottom: 10 }}>AI Recommendations</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {[
+                { signal: "Response time averaging 3.4 min in Section B", action: "Move 1 associate from stockroom to floor before 2PM", confidence: "High",   color: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
+                { signal: "12 customers dwelled 2+ min in accessories without contact", action: "Reposition associate near center fixture — peak dwell window open now", confidence: "High",   color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
+                { signal: "Traffic historically +18% on Thursdays vs. Mon–Wed",         action: "Schedule 1 extra floor associate Thu 12–3PM",                        confidence: "Medium", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
+              ].map((r, i) => (
+                <div key={i} style={{ padding: "10px 14px", background: r.bg, border: `1px solid ${r.border}`, borderRadius: 8, display: "flex", gap: 12, alignItems: "flex-start" }}>
+                  <div style={{ width: 6, borderRadius: 3, alignSelf: "stretch", background: r.color, flexShrink: 0 }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 11, color: "#64748b", marginBottom: 2 }}>Signal: {r.signal}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>→ {r.action}</div>
+                  </div>
+                  <Badge style={{ background: r.color, color: "white", border: 0, fontSize: 10 }}>{r.confidence}</Badge>
                 </div>
-                <Badge style={{ background: r.color, color: "white", border: 0, fontSize: 10 }}>{r.confidence}</Badge>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", marginBottom: 8 }}>Coaching Moments</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {[
-              { time: "Tue 2–3PM",  event: "Response time spike — 3.4 min avg",      metric: "vs. 1.8 min baseline" },
-              { time: "Mon 12–1PM", event: "Associate coverage gap — Zone 3",          metric: "8 uncontacted dwellers" },
-            ].map((c, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", background: "#f8fafc", borderRadius: 6, border: "1px solid #e2e8f0" }}>
-                <div style={{ fontSize: 11, color: "#64748b", width: 90, flexShrink: 0 }}>{c.time}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#0f172a" }}>{c.event}</div>
-                  <div style={{ fontSize: 11, color: "#64748b" }}>{c.metric}</div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", marginBottom: 10 }}>Coaching Moments</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {[
+                { time: "Tue 2–3PM",  event: "Response time spike — 3.4 min avg",      metric: "vs. 1.8 min baseline" },
+                { time: "Mon 12–1PM", event: "Associate coverage gap — Zone 3",          metric: "8 uncontacted dwellers" },
+              ].map((c, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", background: "#f8fafc", borderRadius: 6, border: "1px solid #e2e8f0" }}>
+                  <div style={{ fontSize: 11, color: "#64748b", width: 90, flexShrink: 0 }}>{c.time}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#0f172a" }}>{c.event}</div>
+                    <div style={{ fontSize: 11, color: "#64748b" }}>{c.metric}</div>
+                  </div>
+                  <Button variant="outline" size="sm" className="text-xs gap-1">🎥 Pull clip</Button>
                 </div>
-                <Button variant="outline" size="sm" className="text-xs gap-1">🎥 Pull clip</Button>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
