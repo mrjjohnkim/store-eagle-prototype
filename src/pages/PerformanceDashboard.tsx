@@ -5,8 +5,19 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const compareOptions = ["Last Year", "Peers", "Targets"] as const;
+type CompareOption = typeof compareOptions[number];
+const seriesByOption: Record<CompareOption, "ly" | "peers" | "targets"> = {
+  "Last Year": "ly", "Peers": "peers", "Targets": "targets",
+};
+const seriesColor: Record<"ly" | "peers" | "targets", string> = {
+  ly: "#991b1b", peers: "#7dd3fc", targets: "#d97706",
+};
+const seriesLabel: Record<"ly" | "peers" | "targets", string> = {
+  ly: "Last Year", peers: "Peers", targets: "Targets",
+};
 
-type HoveredCell = { metric: string; day: number; series: "actual" | "peers" | "ly" } | null;
+type HoveredCell = { metric: string; day: number; series: "actual" | "peers" | "ly" | "targets" } | null;
 
 interface MetricChartConfig {
   key: string;
@@ -15,6 +26,7 @@ interface MetricChartConfig {
   data: number[];
   ly: number[];
   peers: number[];
+  targets: number[];
   niceMax: number;
   tickStep: number;
   aggregate: "sum" | "avg";
@@ -33,6 +45,7 @@ const metricCharts: MetricChartConfig[] = [
     data: [4200, 3800, 4100, 3600, 4500, 5800, 6400],
     ly: [4800, 4100, 4500, 4200, 4700, 6200, 7000],
     peers: [4500, 4000, 4350, 4000, 4600, 6000, 6700],
+    targets: [4600, 4100, 4400, 4000, 4800, 6100, 6800],
     niceMax: 8000, tickStep: 2000, aggregate: "sum", deltaUnit: "pct",
     yFormat: (v) => v === 0 ? "$0" : `$${(v / 1000).toFixed(1)}k`,
     pointFormat: (v) => `$${Math.round(v).toLocaleString()}`,
@@ -43,6 +56,7 @@ const metricCharts: MetricChartConfig[] = [
     data: [28, 29, 30, 28, 31, 33, 34],
     ly: [27, 28, 29, 27, 30, 31, 32],
     peers: [29, 30, 31, 29, 32, 34, 35],
+    targets: [30, 31, 32, 30, 33, 35, 36],
     niceMax: 40, tickStep: 10, aggregate: "avg", deltaUnit: "pt",
     yFormat: (v) => `${v.toFixed(0)}%`,
     pointFormat: (v) => `${v.toFixed(0)}%`,
@@ -53,6 +67,7 @@ const metricCharts: MetricChartConfig[] = [
     data: [58, 59, 61, 57, 63, 65, 66],
     ly: [55, 57, 59, 56, 60, 62, 64],
     peers: [60, 61, 63, 59, 65, 67, 68],
+    targets: [62, 63, 65, 61, 67, 69, 70],
     niceMax: 80, tickStep: 20, aggregate: "avg", deltaUnit: "pct",
     yFormat: (v) => `$${v.toFixed(0)}`,
     pointFormat: (v) => `$${v.toFixed(0)}`,
@@ -63,11 +78,16 @@ const metricCharts: MetricChartConfig[] = [
 const PerformanceDashboard: React.FC = () => {
   const [store, setStore] = useState("Cedar Crossing");
   const [week, setWeek] = useState("This Week");
+  const [compareWith, setCompareWith] = useState<CompareOption[]>(["Last Year", "Peers"]);
+  const [showCompareMenu, setShowCompareMenu] = useState(false);
   const [signals, setSignals] = useState({ weather: true, events: false, promo: false });
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
   const [hoveredCell, setHoveredCell] = useState<HoveredCell>(null);
   const toggleSignal = (k: keyof typeof signals) => setSignals((s) => ({ ...s, [k]: !s[k] }));
+  const toggleCompare = (opt: CompareOption) => setCompareWith((prev) => prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]);
   const signalLabels: Record<string, string> = { weather: "🌧 Weather", events: "📅 Local Events", promo: "🏷 Promotions" };
+
+  const activeSeries = compareWith.map((o) => seriesByOption[o]);
 
   const powerHours = [
     { hour: "9AM",  traffic: 42,  isPower: false },
@@ -88,10 +108,12 @@ const PerformanceDashboard: React.FC = () => {
   const MetricBarChart: React.FC<{ cfg: MetricChartConfig }> = ({ cfg }) => {
     const aggFn = cfg.aggregate === "sum" ? sum : avg;
     const totalVal = aggFn(cfg.data);
-    const lyVal = aggFn(cfg.ly);
-    const peersVal = aggFn(cfg.peers);
-    const deltaLY = cfg.deltaUnit === "pt" ? totalVal - lyVal : ((totalVal - lyVal) / lyVal) * 100;
-    const deltaPeers = cfg.deltaUnit === "pt" ? totalVal - peersVal : ((totalVal - peersVal) / peersVal) * 100;
+    const valBySeries: Record<"ly" | "peers" | "targets", number> = {
+      ly: aggFn(cfg.ly), peers: aggFn(cfg.peers), targets: aggFn(cfg.targets),
+    };
+    const arrBySeries: Record<"ly" | "peers" | "targets", number[]> = {
+      ly: cfg.ly, peers: cfg.peers, targets: cfg.targets,
+    };
     const fmtDelta = (d: number) => cfg.deltaUnit === "pt" ? `${Math.abs(d).toFixed(1)}pt` : `${Math.abs(Math.round(d))}%`;
     const ticks = [0, cfg.tickStep, cfg.tickStep * 2, cfg.tickStep * 3, cfg.niceMax];
     const chartHeight = 150;
@@ -101,8 +123,14 @@ const PerformanceDashboard: React.FC = () => {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>{cfg.label}</div>
           <div style={{ display: "flex", gap: 16, alignItems: "center", fontSize: 12 }}>
-            <span className={deltaLY >= 0 ? "metric-delta-green" : "metric-delta-red"}>{deltaLY >= 0 ? "▲" : "▼"} {fmtDelta(deltaLY)} vs LY</span>
-            <span className={deltaPeers >= 0 ? "metric-delta-green" : "metric-delta-red"}>{deltaPeers >= 0 ? "▲" : "▼"} {fmtDelta(deltaPeers)} vs Peers</span>
+            {activeSeries.map((s) => {
+              const d = cfg.deltaUnit === "pt" ? totalVal - valBySeries[s] : ((totalVal - valBySeries[s]) / valBySeries[s]) * 100;
+              return (
+                <span key={s} className={d >= 0 ? "metric-delta-green" : "metric-delta-red"}>
+                  {d >= 0 ? "▲" : "▼"} {fmtDelta(d)} vs {seriesLabel[s]}
+                </span>
+              );
+            })}
             <span style={{ fontWeight: 700, color: "#0f172a" }}>Total: {cfg.totalFormat(totalVal)}</span>
           </div>
         </div>
@@ -129,28 +157,20 @@ const PerformanceDashboard: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  <div
-                    style={{ position: "absolute", left: "12%", right: "12%", height: 3, background: "#7dd3fc", bottom: `${(cfg.peers[i] / cfg.niceMax) * 100}%`, borderRadius: 2, cursor: "default" }}
-                    onMouseEnter={() => setHoveredCell({ metric: cfg.key, day: i, series: "peers" })}
-                    onMouseLeave={() => setHoveredCell(null)}
-                  >
-                    {hoveredCell?.metric === cfg.key && hoveredCell.day === i && hoveredCell.series === "peers" && (
-                      <div style={{ position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)", background: "#0369a1", color: "white", padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
-                        Peers: {cfg.pointFormat(cfg.peers[i])}
-                      </div>
-                    )}
-                  </div>
-                  <div
-                    style={{ position: "absolute", left: "12%", right: "12%", height: 3, background: "#991b1b", bottom: `${(cfg.ly[i] / cfg.niceMax) * 100}%`, borderRadius: 2, cursor: "default" }}
-                    onMouseEnter={() => setHoveredCell({ metric: cfg.key, day: i, series: "ly" })}
-                    onMouseLeave={() => setHoveredCell(null)}
-                  >
-                    {hoveredCell?.metric === cfg.key && hoveredCell.day === i && hoveredCell.series === "ly" && (
-                      <div style={{ position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)", background: "#991b1b", color: "white", padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
-                        LY: {cfg.pointFormat(cfg.ly[i])}
-                      </div>
-                    )}
-                  </div>
+                  {activeSeries.map((s) => (
+                    <div
+                      key={s}
+                      style={{ position: "absolute", left: "12%", right: "12%", height: 3, background: seriesColor[s], bottom: `${(arrBySeries[s][i] / cfg.niceMax) * 100}%`, borderRadius: 2, cursor: "default" }}
+                      onMouseEnter={() => setHoveredCell({ metric: cfg.key, day: i, series: s })}
+                      onMouseLeave={() => setHoveredCell(null)}
+                    >
+                      {hoveredCell?.metric === cfg.key && hoveredCell.day === i && hoveredCell.series === s && (
+                        <div style={{ position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)", background: seriesColor[s], color: "white", padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
+                          {seriesLabel[s]}: {cfg.pointFormat(arrBySeries[s][i])}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
@@ -161,8 +181,9 @@ const PerformanceDashboard: React.FC = () => {
         </div>
         <div style={{ display: "flex", gap: 16, marginTop: 10, marginLeft: 58, fontSize: 11, color: "#64748b" }}>
           <span><span style={{ color: cfg.barColor }}>■</span> This Week</span>
-          <span><span style={{ color: "#7dd3fc" }}>▬</span> Peers</span>
-          <span><span style={{ color: "#991b1b" }}>▬</span> Last Year</span>
+          {activeSeries.map((s) => (
+            <span key={s}><span style={{ color: seriesColor[s] }}>▬</span> {seriesLabel[s]}</span>
+          ))}
         </div>
       </div>
     );
@@ -176,14 +197,6 @@ const PerformanceDashboard: React.FC = () => {
           <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Single-store weekly view vs last year</p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <Select value={week} onValueChange={(v) => v && setWeek(v)}>
-            <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {["This Week","Last Week","Two Weeks Ago"].map((w) => (
-                <SelectItem key={w} value={w}>{w}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           <Select value={store} onValueChange={(v) => v && setStore(v)}>
             <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -197,17 +210,36 @@ const PerformanceDashboard: React.FC = () => {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 16, alignItems: "start" }}>
         <div>
-          <div className="card" style={{ marginBottom: 16, border: "1px solid #fecaca", background: "#fef9f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div className="metric-label">Revenue at Risk</div>
-                <Tooltip text="Customers who dwelled 2+ min without associate contact and left without purchasing">
-                  <span style={{ fontSize: 11, color: "#94a3b8", cursor: "help" }}>?</span>
-                </Tooltip>
-              </div>
-              <div className="metric-value" style={{ fontSize: 22, color: "#dc2626" }}>$840</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, fontSize: 13, color: "#64748b" }}>
+            <span>Compare</span>
+            <Select value={week} onValueChange={(v) => v && setWeek(v)}>
+              <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {["This Week","Last Week","Two Weeks Ago"].map((w) => (
+                  <SelectItem key={w} value={w}>{w}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span>against</span>
+            <div style={{ position: "relative" }}>
+              <button className="btn btn-outline" style={{ fontSize: 13, minWidth: 180, justifyContent: "space-between" }} onClick={() => setShowCompareMenu((v) => !v)}>
+                {compareWith.length ? compareWith.join(", ") : "Select..."}
+                <span style={{ marginLeft: 8 }}>▾</span>
+              </button>
+              {showCompareMenu && (
+                <>
+                  <div style={{ position: "fixed", inset: 0, zIndex: 90 }} onClick={() => setShowCompareMenu(false)} />
+                  <div className="dropdown-menu" style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, zIndex: 100 }}>
+                    {compareOptions.map((opt) => (
+                      <label key={opt} className="dropdown-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <input type="checkbox" className="checkbox" checked={compareWith.includes(opt)} onChange={() => toggleCompare(opt)} />
+                        {opt}
+                      </label>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
-            <div className="metric-delta-red">▼ 14 uncontacted dwellers today</div>
           </div>
 
           {metricCharts.map((cfg) => <MetricBarChart key={cfg.key} cfg={cfg} />)}
@@ -257,6 +289,19 @@ const PerformanceDashboard: React.FC = () => {
         </div>
 
         <div>
+          <div className="card" style={{ marginBottom: 16, border: "1px solid #fecaca", background: "#fef9f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div className="metric-label">Revenue at Risk</div>
+                <Tooltip text="Customers who dwelled 2+ min without associate contact and left without purchasing">
+                  <span style={{ fontSize: 11, color: "#94a3b8", cursor: "help" }}>?</span>
+                </Tooltip>
+              </div>
+              <div className="metric-value" style={{ fontSize: 22, color: "#dc2626" }}>$840</div>
+            </div>
+            <div className="metric-delta-red">▼ 14 uncontacted dwellers today</div>
+          </div>
+
           <div className="card" style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", marginBottom: 10 }}>AI Recommendations</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
