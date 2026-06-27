@@ -233,6 +233,7 @@ const PerformanceDashboard: React.FC = () => {
                     {compareOptions.map((opt) => (
                       <label key={opt} className="dropdown-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <input type="checkbox" className="checkbox" checked={compareWith.includes(opt)} onChange={() => toggleCompare(opt)} />
+                        <span style={{ width: 14, height: 3, borderRadius: 2, background: seriesColor[seriesByOption[opt]], flexShrink: 0 }} />
                         {opt}
                       </label>
                     ))}
