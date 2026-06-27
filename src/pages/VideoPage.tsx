@@ -1,16 +1,30 @@
-import React from "react";
+import React, { useState } from "react";
 import Icon from "../components/ui/Icon";
 import { PageId } from "../types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface VideoPageProps {
   navigate: (p: PageId) => void;
 }
 
-const VideoPage: React.FC<VideoPageProps> = ({ navigate }) => (
+const VideoPage: React.FC<VideoPageProps> = ({ navigate }) => {
+  const [region, setRegion] = useState("All Regions");
+
+  return (
   <div>
-    <div style={{ marginBottom: 20 }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>Live Video Feeds</h2>
-      <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Eagle Eye sensor feeds — top-down people tracking with count lines</p>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+      <div>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>Live Video Feeds</h2>
+        <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Eagle Eye sensor feeds — top-down people tracking with count lines</p>
+      </div>
+      <Select value={region} onValueChange={(v) => v && setRegion(v)}>
+        <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          {["All Regions", "Northeast", "West", "South", "Midwest"].map((r) => (
+            <SelectItem key={r} value={r}>{r}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
       {[1, 2, 3, 4].map((n) => (
@@ -53,6 +67,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ navigate }) => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default VideoPage;
