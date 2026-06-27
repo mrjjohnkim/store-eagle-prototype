@@ -5,7 +5,7 @@ type HoveredBar = { chart: string; i: number; isCurrent: boolean } | null;
 
 const TrafficPage: React.FC = () => {
   const [compare, setCompare] = useState("Last Year");
-  const [site, setSite] = useState("Fashion Ave");
+  const [site, setSite] = useState("Cedar Crossing");
   const [hourPeriod, setHourPeriod] = useState("Last Year");
   const [monthPeriod, setMonthPeriod] = useState("Last Year");
   const [hoveredBar, setHoveredBar] = useState<HoveredBar>(null);
@@ -18,9 +18,9 @@ const TrafficPage: React.FC = () => {
   const dayCompare = compare === "Last Week" ? lastWeek : lastYearW;
 
   const locations = [
-    { name: "Fashion Ave", current: [1240, 1180, 1350, 1420, 1680, 2210, 1890], ly: [1280, 1210, 1390, 1450, 1720, 2280, 1940] },
-    { name: "Market Street", current: [890, 840, 920, 980, 1120, 1560, 1320], ly: [1050, 990, 1080, 1150, 1310, 1820, 1550] },
-    { name: "Harbor Walk", current: [640, 610, 680, 720, 850, 1180, 980], ly: [620, 590, 660, 700, 820, 1140, 950] },
+    { name: "Cedar Crossing", current: [1240, 1180, 1350, 1420, 1680, 2210, 1890], ly: [1280, 1210, 1390, 1450, 1720, 2280, 1940] },
+    { name: "Bayfront Promenade", current: [890, 840, 920, 980, 1120, 1560, 1320], ly: [1050, 990, 1080, 1150, 1310, 1820, 1550] },
+    { name: "Maple Grove Plaza", current: [640, 610, 680, 720, 850, 1180, 980], ly: [620, 590, 660, 700, 820, 1140, 950] },
   ];
 
   const hours = ["9AM", "10AM", "11AM", "12PM", "1PM", "2PM", "3PM", "4PM", "5PM", "6PM", "7PM", "8PM"];
@@ -139,7 +139,7 @@ const TrafficPage: React.FC = () => {
           <Select value={site} onValueChange={(v) => v && setSite(v)}>
             <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {["Fashion Ave", "Market Street", "Harbor Walk"].map((s) => (
+              {["Cedar Crossing", "Bayfront Promenade", "Maple Grove Plaza"].map((s) => (
                 <SelectItem key={s} value={s}>{s}</SelectItem>
               ))}
             </SelectContent>

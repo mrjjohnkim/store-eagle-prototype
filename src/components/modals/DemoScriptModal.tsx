@@ -22,7 +22,7 @@ const demoStops: DemoStop[] = [
     { label: "Opening line", text: "\"This is the unified operational view — traffic, customer journey, and video evidence all in one surface. Today this data lives in three separate tabs with no connection between them. AI Store Insights closes that loop.\"" },
     { label: "Click alert banner", text: "\"Customer Journey detected a conversion drop in Zone 3 between 2–3 PM. One click auto-retrieves the video clip. The manager doesn't file a ticket — the system surfaces the evidence at the moment of the alert.\"" },
     { label: "Show video modal", text: "\"Same hardware. Same footage. What's new is the connection — the analytic triggers the video, not the other way around. That's a coaching moment, not an investigation.\"" },
-    { label: "Zone map", text: "\"Red border = high dwell with no coverage — revenue leakage indicator. $1,240 today at Fashion Ave. Not shrink, not LP — margin leakage from an operational gap.\"" },
+    { label: "Zone map", text: "\"Red border = high dwell with no coverage — revenue leakage indicator. $1,240 today at Cedar Crossing. Not shrink, not LP — margin leakage from an operational gap.\"" },
     { label: "Checkout Anomalies", text: "\"POS exception correlation — three exceptions in fifteen minutes at 1:30 PM, above twice the baseline rate. Store Ops language, not LP language. Same data, different conversation.\"" },
   ]},
   { stop: "2", title: "Lift Labs", time: "3 min", color: "#0891b2", steps: [
@@ -39,7 +39,7 @@ const demoStops: DemoStop[] = [
   ]},
   { stop: "4", title: "Optimization — Employee Exclusion", time: "1.5 min", color: "#d97706", steps: [
     { label: "Expand panel", text: "\"Employee exclusion was described on the Verizon call as the reason a one-sensor solution might not work. It's been 'three years out' for three years. This panel makes it a configurable product feature instead of a per-customer engineering project.\"" },
-    { label: "Toggle UWB Badge + Shift Schedule", text: "\"Four badges registered at Fashion Ave — the beta is live. CSV upload or connect to HR system. These aren't separate IT projects — they're settings in the platform.\"" },
+    { label: "Toggle UWB Badge + Shift Schedule", text: "\"Four badges registered at Cedar Crossing — the beta is live. CSV upload or connect to HR system. These aren't separate IT projects — they're settings in the platform.\"" },
     { label: "Dwell slider", text: "\"For stores where UWB isn't deployed yet — a dwell threshold. 45 minutes continuous presence flagged as probable employee. Adjustable per store format.\"" },
   ]},
   { stop: "5", title: "Admin → Integrations", time: "1 min", color: "#7c3aed", steps: [

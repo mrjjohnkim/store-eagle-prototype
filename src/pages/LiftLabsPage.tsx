@@ -10,12 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const experimentsData: Record<string, Experiment[]> = {
   active: [
-    { id: "E-004", name: "North Wall Endcap Redesign", stores: "Fashion Ave (test) vs. Market Street (control)", period: "Dec 1 – Dec 31", metric: "Zone dwell", status: "In progress", lift: "+12% running" },
-    { id: "E-005", name: "Self-Checkout Expansion — 2 lanes", stores: "Harbor Walk", period: "Nov 15 – Dec 15", metric: "Checkout throughput", status: "In progress", lift: "Collecting data" },
+    { id: "E-004", name: "North Wall Endcap Redesign", stores: "Cedar Crossing (test) vs. Bayfront Promenade (control)", period: "Dec 1 – Dec 31", metric: "Zone dwell", status: "In progress", lift: "+12% running" },
+    { id: "E-005", name: "Self-Checkout Expansion — 2 lanes", stores: "Maple Grove Plaza", period: "Nov 15 – Dec 15", metric: "Checkout throughput", status: "In progress", lift: "Collecting data" },
   ],
   completed: [
     {
-      id: "E-001", name: "NFL Season Activation — Apparel Zone", stores: "Fashion Ave", period: "Sep 1 – Nov 30", metric: "Zone traffic + dwell", status: "Complete", lift: "+24% zone traffic",
+      id: "E-001", name: "NFL Season Activation — Apparel Zone", stores: "Cedar Crossing", period: "Sep 1 – Nov 30", metric: "Zone traffic + dwell", status: "Complete", lift: "+24% zone traffic",
       results: { labels: ["Traffic","Avg Dwell","Conversion","Revenue/sqft"], test: [47,3.8,35,22.6], control: [38,2.1,29,18.2] },
       annotations: [{ date: "Sep 5", label: "NFL kickoff" }, { date: "Oct 10", label: "Fixture relocated" }],
     },
@@ -44,7 +44,7 @@ const LiftLabsPage: React.FC = () => {
   const [showWizard, setShowWizard] = useState(false);
   const [wizardStep, setWizardStep] = useState(1);
   const [hoveredLift, setHoveredLift] = useState<string | null>(null);
-  const [newExp, setNewExp] = useState({ name: "", hypothesis: "", testStore: "Fashion Ave", controlStore: "Downtown Core", metric: "Traffic" });
+  const [newExp, setNewExp] = useState({ name: "", hypothesis: "", testStore: "Cedar Crossing", controlStore: "Union Heights", metric: "Traffic" });
 
   const allExp = experimentsData[tab] || [];
   const exp = selectedExp;
@@ -242,7 +242,7 @@ const LiftLabsPage: React.FC = () => {
                 <Select value={newExp.testStore} onValueChange={(v) => v && setNewExp({ ...newExp, testStore: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {["Fashion Ave","Market Street","Harbor Walk"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    {["Cedar Crossing","Bayfront Promenade","Maple Grove Plaza"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -251,7 +251,7 @@ const LiftLabsPage: React.FC = () => {
                 <Select value={newExp.controlStore} onValueChange={(v) => v && setNewExp({ ...newExp, controlStore: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {["Downtown Core","Lakeside Mall"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    {["Union Heights","Brookhaven Center"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>

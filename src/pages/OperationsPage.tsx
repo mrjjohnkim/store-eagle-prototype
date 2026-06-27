@@ -59,7 +59,7 @@ const getCompareData = (m: typeof dayMetrics[number], period: string) => {
 
 const OperationsPage: React.FC<OperationsPageProps> = ({ navigate }) => {
   const [dateRange, setDateRange] = useState("This Week");
-  const [site, setSite] = useState("Fashion Ave");
+  const [site, setSite] = useState("Cedar Crossing");
   const [comparePeriod, setComparePeriod] = useState<string>("Last Year");
   const [hoveredBar, setHoveredBar] = useState<HoveredBar>(null);
 
@@ -72,11 +72,11 @@ const OperationsPage: React.FC<OperationsPageProps> = ({ navigate }) => {
     { label: "UPT", value: "2.3", delta: "-0.2%", up: false },
   ];
   const stores = [
-    { name: "Fashion Ave", region: "Northeast", conv: 34.2, traffic: 2210 },
-    { name: "Market Street", region: "West", conv: 31.8, traffic: 1890 },
-    { name: "Harbor Walk", region: "South", conv: 27.4, traffic: 1640 },
-    { name: "Downtown Core", region: "Midwest", conv: 25.1, traffic: 1480 },
-    { name: "Lakeside Mall", region: "Midwest", conv: 22.8, traffic: 1201 },
+    { name: "Cedar Crossing", region: "Northeast", conv: 34.2, traffic: 2210 },
+    { name: "Bayfront Promenade", region: "West", conv: 31.8, traffic: 1890 },
+    { name: "Maple Grove Plaza", region: "South", conv: 27.4, traffic: 1640 },
+    { name: "Union Heights", region: "Midwest", conv: 25.1, traffic: 1480 },
+    { name: "Brookhaven Center", region: "Midwest", conv: 22.8, traffic: 1201 },
   ];
 
   const DayComparisonChart: React.FC<{
@@ -143,7 +143,7 @@ const OperationsPage: React.FC<OperationsPageProps> = ({ navigate }) => {
           <Select value={site} onValueChange={(v) => v && setSite(v)}>
             <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {["Fashion Ave", "Market Street", "Harbor Walk"].map((s) => (
+              {["Cedar Crossing", "Bayfront Promenade", "Maple Grove Plaza"].map((s) => (
                 <SelectItem key={s} value={s}>{s}</SelectItem>
               ))}
             </SelectContent>

@@ -50,10 +50,10 @@ const AIStoreInsightsPage: React.FC = () => {
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <Badge variant="destructive">● 2 Active Alerts</Badge>
-          <Select defaultValue="Fashion Ave">
+          <Select defaultValue="Cedar Crossing">
             <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {["Fashion Ave","Market Street","Harbor Walk"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              {["Cedar Crossing","Bayfront Promenade","Maple Grove Plaza"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
           <Button variant="outline" size="sm">Today</Button>

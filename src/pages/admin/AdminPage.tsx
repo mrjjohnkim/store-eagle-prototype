@@ -6,10 +6,10 @@ import { AdminSubPage } from "../../types";
 const AdminUsers: React.FC = () => {
   const [showAdd, setShowAdd] = useState(false);
   const users = [
-    { name: "Sarah Mitchell", email: "s.mitchell@brand.com", profile: "Store Manager", location: "Fashion Ave", status: "Active" },
+    { name: "Sarah Mitchell", email: "s.mitchell@brand.com", profile: "Store Manager", location: "Cedar Crossing", status: "Active" },
     { name: "Tom Reeves", email: "t.reeves@brand.com", profile: "Regional Manager", location: "Northeast", status: "Active" },
     { name: "Priya Nair", email: "p.nair@brand.com", profile: "Head Office", location: "All Stores", status: "Active" },
-    { name: "Carlos Ruiz", email: "c.ruiz@brand.com", profile: "Store Manager", location: "Market Street", status: "Pending" },
+    { name: "Carlos Ruiz", email: "c.ruiz@brand.com", profile: "Store Manager", location: "Bayfront Promenade", status: "Pending" },
   ];
   return (
     <div>
@@ -124,13 +124,13 @@ const AdminUserProfiles: React.FC = () => {
 
 // ─── Admin Locations ──────────────────────────────────────────────────────────
 const AdminLocations: React.FC = () => {
-  const [selected, setSelected] = useState("Fashion Ave");
+  const [selected, setSelected] = useState("Cedar Crossing");
   const [showHoursEdit, setShowHoursEdit] = useState(false);
   const regions: Record<string, string[]> = {
-    Northeast: ["Fashion Ave","Harbor Walk","Times Square"],
-    West: ["Market Street","Union Square","Sunset Blvd"],
+    Northeast: ["Cedar Crossing","Maple Grove Plaza","Times Square"],
+    West: ["Bayfront Promenade","Union Square","Sunset Blvd"],
     South: ["Peachtree","Riverwalk","Bayshore"],
-    Midwest: ["Downtown Core","Lakeside Mall","Wacker Dr"],
+    Midwest: ["Union Heights","Brookhaven Center","Wacker Dr"],
   };
   const storeHours = [
     { day: "Mon", open: "10:00 AM", close: "9:00 PM" }, { day: "Tue", open: "10:00 AM", close: "9:00 PM" },
@@ -156,7 +156,7 @@ const AdminLocations: React.FC = () => {
         <div className="card" style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 14, color: "#0f172a" }}>Location Details — {selected}</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {[["Store Name", selected],["Address","245 Fashion Ave, New York, NY 10018"],["Store Code","FAV-001"],["Region","Northeast"],["Time Zone","America/New_York"],["Sensors Installed","4"]].map(([l, v]) => (
+            {[["Store Name", selected],["Address","245 Cedar Crossing, New York, NY 10018"],["Store Code","FAV-001"],["Region","Northeast"],["Time Zone","America/New_York"],["Sensors Installed","4"]].map(([l, v]) => (
               <div key={l}>
                 <div style={{ fontSize: 12, color: "#64748b", marginBottom: 2 }}>{l}</div>
                 <div style={{ fontSize: 13, color: "#0f172a" }}>{v}</div>
@@ -210,11 +210,11 @@ const AdminHealth: React.FC = () => {
   const [filter, setFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
   const sensors = [
-    { id: "S-001", store: "Fashion Ave", type: "Connectivity", since: "Dec 12, 2:14 AM", status: "Unresolved", detail: "Sensor offline — possible power interruption" },
-    { id: "S-002", store: "Market Street", type: "POS Data", since: "Dec 11, 11:30 PM", status: "Unresolved", detail: "POS feed not received since store close" },
-    { id: "S-003", store: "Harbor Walk", type: "Connectivity", since: "Dec 10, 8:00 AM", status: "Resolved", detail: "Sensor back online after firmware update" },
-    { id: "S-004", store: "Downtown Core", type: "Connectivity", since: "Dec 9, 3:45 PM", status: "Resolved", detail: "Resolved by on-site IT" },
-    { id: "S-005", store: "Lakeside Mall", type: "POS Data", since: "Dec 12, 6:00 AM", status: "Unresolved", detail: "POS integration configuration error" },
+    { id: "S-001", store: "Cedar Crossing", type: "Connectivity", since: "Dec 12, 2:14 AM", status: "Unresolved", detail: "Sensor offline — possible power interruption" },
+    { id: "S-002", store: "Bayfront Promenade", type: "POS Data", since: "Dec 11, 11:30 PM", status: "Unresolved", detail: "POS feed not received since store close" },
+    { id: "S-003", store: "Maple Grove Plaza", type: "Connectivity", since: "Dec 10, 8:00 AM", status: "Resolved", detail: "Sensor back online after firmware update" },
+    { id: "S-004", store: "Union Heights", type: "Connectivity", since: "Dec 9, 3:45 PM", status: "Resolved", detail: "Resolved by on-site IT" },
+    { id: "S-005", store: "Brookhaven Center", type: "POS Data", since: "Dec 12, 6:00 AM", status: "Unresolved", detail: "POS integration configuration error" },
   ];
   const filtered = sensors.filter((s) =>
     (filter === "All" || s.status === filter) && (typeFilter === "All" || s.type === typeFilter)
@@ -266,12 +266,12 @@ const AdminHealth: React.FC = () => {
 const AdminCameras: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const cameras = [
-    { id: "CAM-001", store: "Fashion Ave", location: "Entrance A", firmware: "v4.2.1", lastSeen: "Live", online: true },
-    { id: "CAM-002", store: "Fashion Ave", location: "Entrance B", firmware: "v4.2.1", lastSeen: "Live", online: true },
-    { id: "CAM-003", store: "Market Street", location: "Main Door", firmware: "v4.1.8", lastSeen: "Live", online: true },
-    { id: "CAM-004", store: "Harbor Walk", location: "Entrance", firmware: "v4.2.1", lastSeen: "Dec 12, 2:14 AM", online: false },
-    { id: "CAM-005", store: "Downtown Core", location: "Entrance A", firmware: "v4.0.5", lastSeen: "Live", online: true },
-    { id: "CAM-006", store: "Lakeside Mall", location: "North Entry", firmware: "v4.2.1", lastSeen: "Live", online: true },
+    { id: "CAM-001", store: "Cedar Crossing", location: "Entrance A", firmware: "v4.2.1", lastSeen: "Live", online: true },
+    { id: "CAM-002", store: "Cedar Crossing", location: "Entrance B", firmware: "v4.2.1", lastSeen: "Live", online: true },
+    { id: "CAM-003", store: "Bayfront Promenade", location: "Main Door", firmware: "v4.1.8", lastSeen: "Live", online: true },
+    { id: "CAM-004", store: "Maple Grove Plaza", location: "Entrance", firmware: "v4.2.1", lastSeen: "Dec 12, 2:14 AM", online: false },
+    { id: "CAM-005", store: "Union Heights", location: "Entrance A", firmware: "v4.0.5", lastSeen: "Live", online: true },
+    { id: "CAM-006", store: "Brookhaven Center", location: "North Entry", firmware: "v4.2.1", lastSeen: "Live", online: true },
   ];
   const filtered = cameras.filter((c) => statusFilter === "All" || (statusFilter === "Online" ? c.online : !c.online));
   return (
@@ -306,8 +306,8 @@ const AdminCameras: React.FC = () => {
 
 // ─── Admin Employee Exclusion ─────────────────────────────────────────────────
 const AdminEmployeeExclusion: React.FC = () => {
-  const stores = ["Fashion Ave","Market Street","Harbor Walk","Downtown Core","Lakeside Mall"];
-  const [sel, setSel] = useState("Fashion Ave");
+  const stores = ["Cedar Crossing","Bayfront Promenade","Maple Grove Plaza","Union Heights","Brookhaven Center"];
+  const [sel, setSel] = useState("Cedar Crossing");
   const methods = [
     { name: "UWB Badge", status: "Beta", detail: "4 badges registered" },
     { name: "Shift Schedule Import", status: "Active", detail: "Last sync: Today 6:00 AM" },

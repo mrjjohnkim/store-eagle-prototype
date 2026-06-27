@@ -7,10 +7,10 @@ interface AlertsDrawerProps {
 }
 
 const alerts: Alert[] = [
-  { time: "2:14 PM", zone: "Zone 3 — Accessories", severity: "high", message: "Conversion dropped 22% · 2–3PM", store: "Fashion Ave" },
-  { time: "1:48 PM", zone: "Checkout", severity: "medium", message: "3 void/override events in 15 min", store: "Fashion Ave" },
-  { time: "12:30 PM", zone: "Zone 1 — Apparel", severity: "low", message: "Associate coverage gap 12–1PM", store: "Market Street" },
-  { time: "9:02 AM", zone: "Sensor S-004", severity: "medium", message: "Sensor offline — connectivity issue", store: "Harbor Walk" },
+  { time: "2:14 PM", zone: "Zone 3 — Accessories", severity: "high", message: "Conversion dropped 22% · 2–3PM", store: "Cedar Crossing" },
+  { time: "1:48 PM", zone: "Checkout", severity: "medium", message: "3 void/override events in 15 min", store: "Cedar Crossing" },
+  { time: "12:30 PM", zone: "Zone 1 — Apparel", severity: "low", message: "Associate coverage gap 12–1PM", store: "Bayfront Promenade" },
+  { time: "9:02 AM", zone: "Sensor S-004", severity: "medium", message: "Sensor offline — connectivity issue", store: "Maple Grove Plaza" },
 ];
 
 const AlertsDrawer: React.FC<AlertsDrawerProps> = ({ onClose }) => (

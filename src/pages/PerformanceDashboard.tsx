@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const PerformanceDashboard: React.FC = () => {
-  const [store, setStore] = useState("Fashion Ave");
+  const [store, setStore] = useState("Cedar Crossing");
   const [week, setWeek] = useState("This Week");
   const [signals, setSignals] = useState({ weather: true, events: false, promo: false });
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
@@ -39,7 +39,7 @@ const PerformanceDashboard: React.FC = () => {
           <Select value={store} onValueChange={(v) => v && setStore(v)}>
             <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {["Fashion Ave","Market Street","Harbor Walk","Downtown Core","Lakeside Mall"].map((s) => (
+              {["Cedar Crossing","Bayfront Promenade","Maple Grove Plaza","Union Heights","Brookhaven Center"].map((s) => (
                 <SelectItem key={s} value={s}>{s}</SelectItem>
               ))}
             </SelectContent>

@@ -11,13 +11,13 @@ const AnalyticsPage: React.FC = () => {
     { label: "Nov 2024", value: "2024-11-01/2024-11-30" },
   ]);
   const [metrics, setMetrics] = useState(["Traffic", "Conversion", "Sales"]);
-  const [stores, setStores] = useState(["Fashion Ave", "Market Street"]);
+  const [stores, setStores] = useState(["Cedar Crossing", "Bayfront Promenade"]);
   const allMetrics = ["Traffic", "Conversion", "Sales", "Avg Transaction", "UPT", "Shopper Yield", "Capture Rate"];
   const tableData = [
-    { date: "Nov 2025", store: "Fashion Ave", traffic: "12,840", conversion: "33.2%", sales: "$84,214" },
-    { date: "Nov 2025", store: "Market Street", traffic: "9,210", conversion: "28.6%", sales: "$52,480" },
-    { date: "Nov 2024", store: "Fashion Ave", traffic: "13,120", conversion: "31.8%", sales: "$82,100" },
-    { date: "Nov 2024", store: "Market Street", traffic: "9,650", conversion: "27.4%", sales: "$51,200" },
+    { date: "Nov 2025", store: "Cedar Crossing", traffic: "12,840", conversion: "33.2%", sales: "$84,214" },
+    { date: "Nov 2025", store: "Bayfront Promenade", traffic: "9,210", conversion: "28.6%", sales: "$52,480" },
+    { date: "Nov 2024", store: "Cedar Crossing", traffic: "13,120", conversion: "31.8%", sales: "$82,100" },
+    { date: "Nov 2024", store: "Bayfront Promenade", traffic: "9,650", conversion: "27.4%", sales: "$51,200" },
   ];
 
   const toggleGroupBy = (g: string) => setGroupBy((prev) => prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]);
@@ -56,7 +56,7 @@ const AnalyticsPage: React.FC = () => {
 
           <div className="card">
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: "#0f172a" }}>Locations</div>
-            {["Fashion Ave", "Market Street", "Harbor Walk", "Downtown Core"].map((s) => (
+            {["Cedar Crossing", "Bayfront Promenade", "Maple Grove Plaza", "Union Heights"].map((s) => (
               <label key={s} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, cursor: "pointer" }}>
                 <input type="checkbox" className="checkbox" checked={stores.includes(s)} onChange={() => setStores((prev) => prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s])} />
                 <span style={{ fontSize: 13, color: "#374151" }}>{s}</span>

@@ -8,7 +8,7 @@ interface VideoPageProps {
 }
 
 const VideoPage: React.FC<VideoPageProps> = ({ navigate }) => {
-  const [site, setSite] = useState("Fashion Ave");
+  const [site, setSite] = useState("Cedar Crossing");
 
   return (
   <div>
@@ -20,7 +20,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ navigate }) => {
       <Select value={site} onValueChange={(v) => v && setSite(v)}>
         <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
         <SelectContent>
-          {["Fashion Ave", "Market Street", "Harbor Walk"].map((s) => (
+          {["Cedar Crossing", "Bayfront Promenade", "Maple Grove Plaza"].map((s) => (
             <SelectItem key={s} value={s}>{s}</SelectItem>
           ))}
         </SelectContent>

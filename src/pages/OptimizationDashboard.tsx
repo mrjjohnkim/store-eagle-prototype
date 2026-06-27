@@ -101,7 +101,7 @@ const OptimizationDashboard: React.FC = () => {
                   </div>
                   {m.key === "uwb" && excl.uwb && (
                     <div style={{ marginTop: 8, padding: "6px 8px", background: "#fef9c3", borderRadius: 4, fontSize: 11, color: "#854d0e" }}>
-                      ⚡ 4 badges registered at Fashion Ave
+                      ⚡ 4 badges registered at Cedar Crossing
                     </div>
                   )}
                   {m.key === "schedule" && excl.schedule && (
