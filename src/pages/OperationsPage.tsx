@@ -1,14 +1,68 @@
 import React, { useState } from "react";
-import { SparkLine } from "../components/ui/Charts";
 import { Tooltip } from "../components/ui/Charts";
 import { PageId } from "../types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface OperationsPageProps {
   navigate: (p: PageId) => void;
 }
 
+type HoveredBar = { metric: string; day: number; isCurrent: boolean } | null;
+
+const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+const dayMetrics = [
+  {
+    key: "sales", title: "Sales by Day of Week", color: "#3b82f6",
+    format: (v: number) => `$${(v / 1000).toFixed(1)}k`,
+    current: [21000, 19800, 20500, 22300, 24800, 28900, 24200],
+    lastWeek: [20100, 18950, 19800, 21500, 23900, 27800, 23100],
+    lastYear: [19500, 18900, 19800, 21000, 23200, 27100, 22800],
+  },
+  {
+    key: "conversion", title: "Conversion by Day of Week", color: "#22c55e",
+    format: (v: number) => `${v.toFixed(1)}%`,
+    current: [27.4, 26.8, 27.9, 28.5, 29.2, 31.0, 28.8],
+    lastWeek: [26.8, 26.1, 27.2, 27.9, 28.6, 30.2, 28.0],
+    lastYear: [25.9, 25.4, 26.5, 27.0, 27.8, 29.5, 27.2],
+  },
+  {
+    key: "traffic", title: "Traffic by Day of Week", color: "#f59e0b",
+    format: (v: number) => v.toLocaleString(),
+    current: [1180, 1120, 1240, 1340, 1520, 1980, 1580],
+    lastWeek: [1150, 1090, 1205, 1300, 1470, 1920, 1530],
+    lastYear: [1240, 1180, 1300, 1390, 1580, 2050, 1640],
+  },
+  {
+    key: "atv", title: "ATV by Day of Week", color: "#6366f1",
+    format: (v: number) => `$${v.toFixed(0)}`,
+    current: [56.10, 58.40, 57.20, 60.80, 62.30, 65.90, 63.50],
+    lastWeek: [55.30, 57.60, 56.40, 59.90, 61.50, 65.10, 62.70],
+    lastYear: [54.20, 56.10, 55.40, 58.30, 59.80, 63.10, 60.90],
+  },
+  {
+    key: "upt", title: "UPT by Day of Week", color: "#8b5cf6",
+    format: (v: number) => v.toFixed(1),
+    current: [2.1, 2.2, 2.1, 2.3, 2.4, 2.6, 2.5],
+    lastWeek: [2.05, 2.15, 2.05, 2.25, 2.35, 2.55, 2.45],
+    lastYear: [2.0, 2.1, 2.0, 2.2, 2.3, 2.4, 2.3],
+  },
+];
+
+const comparePeriods = ["Last Week", "Last Year", "Last Last Year"] as const;
+
+const getCompareData = (m: typeof dayMetrics[number], period: string) => {
+  if (period === "Last Week") return m.lastWeek;
+  if (period === "Last Last Year") return m.lastYear.map((v) => +(v * 0.96).toFixed(2));
+  return m.lastYear;
+};
+
 const OperationsPage: React.FC<OperationsPageProps> = ({ navigate }) => {
   const [dateRange, setDateRange] = useState("This Week");
+  const [region, setRegion] = useState("All Regions");
+  const [comparePeriod, setComparePeriod] = useState<string>("Last Year");
+  const [hoveredBar, setHoveredBar] = useState<HoveredBar>(null);
+
   const metrics = [
     { label: "Sales", value: "$142,830", delta: "+3.2%", up: true },
     { label: "Traffic", value: "8,421", delta: "-1.4%", up: false },
@@ -24,27 +78,52 @@ const OperationsPage: React.FC<OperationsPageProps> = ({ navigate }) => {
     { name: "Downtown Core", region: "Midwest", conv: 25.1, traffic: 1480 },
     { name: "Lakeside Mall", region: "Midwest", conv: 22.8, traffic: 1201 },
   ];
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const atvByDay = [56.10, 58.40, 57.20, 60.80, 62.30, 65.90, 63.50];
-  const uptByDay = [2.1, 2.2, 2.1, 2.3, 2.4, 2.6, 2.5];
 
-  const DayBarChart: React.FC<{ title: string; data: number[]; format: (v: number) => string; color: string }> = ({ title, data, format, color }) => {
-    const max = Math.max(...data);
+  const DayComparisonChart: React.FC<{
+    metricKey: string; title: string; current: number[]; compare: number[]; format: (v: number) => string; color: string;
+  }> = ({ metricKey, title, current, compare, format, color }) => {
+    const max = Math.max(...current, ...compare);
     return (
       <div>
-        <div style={{ fontSize: 12, color: "#64748b", marginBottom: 18 }}>{title}</div>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 90 }}>
-          {data.map((v, i) => (
-            <div key={days[i]} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div style={{ width: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", height: 70, position: "relative" }}>
-                <div style={{ position: "absolute", top: -16, left: 0, right: 0, textAlign: "center", fontSize: 10, fontWeight: 700, color: "#0f172a" }}>
-                  {format(v)}
+        <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>{title}</div>
+        <div style={{ display: "flex", gap: 4, alignItems: "flex-end" }}>
+          {days.map((d, i) => {
+            const delta = current[i] - compare[i];
+            const pct = Math.round((delta / compare[i]) * 100);
+            const up = delta >= 0;
+            return (
+              <div key={d} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                <div style={{ fontSize: 8, fontWeight: 700, color: up ? "#16a34a" : "#dc2626", background: up ? "#dcfce7" : "#fee2e2", padding: "1px 3px", borderRadius: 3, whiteSpace: "nowrap" }}>
+                  {up ? "+" : ""}{pct}%
                 </div>
-                <div style={{ width: "100%", height: `${(v / max) * 100}%`, background: color, borderRadius: "3px 3px 0 0", minHeight: 3 }} />
+                <div style={{ width: "100%", display: "flex", gap: 1, alignItems: "flex-end", height: 50 }}>
+                  <div
+                    style={{ flex: 1, background: color, borderRadius: "2px 2px 0 0", height: `${(current[i] / max) * 100}%`, position: "relative", cursor: "default" }}
+                    onMouseEnter={() => setHoveredBar({ metric: metricKey, day: i, isCurrent: true })}
+                    onMouseLeave={() => setHoveredBar(null)}
+                  >
+                    {hoveredBar?.metric === metricKey && hoveredBar.day === i && hoveredBar.isCurrent && (
+                      <div style={{ position: "absolute", top: -20, left: "50%", transform: "translateX(-50%)", background: "#0f172a", color: "white", padding: "2px 5px", borderRadius: 4, fontSize: 9, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
+                        {format(current[i])}
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    style={{ flex: 1, background: "#e2e8f0", borderRadius: "2px 2px 0 0", height: `${(compare[i] / max) * 100}%`, position: "relative", cursor: "default" }}
+                    onMouseEnter={() => setHoveredBar({ metric: metricKey, day: i, isCurrent: false })}
+                    onMouseLeave={() => setHoveredBar(null)}
+                  >
+                    {hoveredBar?.metric === metricKey && hoveredBar.day === i && !hoveredBar.isCurrent && (
+                      <div style={{ position: "absolute", top: -20, left: "50%", transform: "translateX(-50%)", background: "#0f172a", color: "white", padding: "2px 5px", borderRadius: 4, fontSize: 9, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
+                        {format(compare[i])}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div style={{ fontSize: 9, color: "#94a3b8", marginTop: 2 }}>{d}</div>
               </div>
-              <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>{days[i]}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
@@ -57,7 +136,15 @@ const OperationsPage: React.FC<OperationsPageProps> = ({ navigate }) => {
           <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>Operations Dashboard</h2>
           <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Live store performance overview</p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <Select value={region} onValueChange={(v) => v && setRegion(v)}>
+            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {["All Regions", "Northeast", "West", "South", "Midwest"].map((r) => (
+                <SelectItem key={r} value={r}>{r}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {["Today", "Yesterday", "This Week", "This Month"].map((r) => (
             <button key={r} className={`btn ${dateRange === r ? "btn-primary" : "btn-outline"}`} style={{ padding: "6px 12px", fontSize: 13 }} onClick={() => setDateRange(r)}>{r}</button>
           ))}
@@ -79,39 +166,9 @@ const OperationsPage: React.FC<OperationsPageProps> = ({ navigate }) => {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16, marginBottom: 16 }}>
-        <div className="card">
-          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: "#0f172a" }}>Weekly Trend vs Last Year</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-            {[
-              { label: "Traffic", data: [7200,7800,8100,7600,8421,8200,8500], ly: [7100,7400,7900,7800,8550,8400,8600] },
-              { label: "Conversion", data: [26,27,28,27.5,28.6,28,29], ly: [25,26,27,27,26.5,27,28] },
-              { label: "Sales ($k)", data: [128,134,138,131,142,138,145], ly: [125,130,135,133,138,136,142] },
-            ].map((s) => (
-              <div key={s.label}>
-                <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>{s.label}</div>
-                <SparkLine data={s.data} lastYear={s.ly} />
-                <div style={{ display: "flex", gap: 8, marginTop: 4, fontSize: 11 }}>
-                  <span style={{ color: "#3b82f6" }}>— This period</span>
-                  <span style={{ color: "#94a3b8" }}>- - Last year</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="card">
-          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: "#0f172a" }}>Store Hierarchy</div>
-          {["All Regions", "Northeast", "West", "South", "Midwest"].map((r) => (
-            <div key={r} style={{ padding: "6px 8px", borderRadius: 4, fontSize: 13, cursor: "pointer", color: r === "All Regions" ? "#1d4ed8" : "#374151", background: r === "All Regions" ? "#dbeafe" : "transparent", marginBottom: 2 }}>
-              {r !== "All Regions" && <span style={{ marginRight: 8, color: "#94a3b8" }}>▸</span>}{r}
-            </div>
-          ))}
-        </div>
-      </div>
-
       <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 16 }}>
         <div className="card">
-          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: "#0f172a" }}>Conversion by Store — Top 5</div>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: "#0f172a" }}>Conversion by Store — Top 5 ({region})</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {stores.map((s, i) => (
               <div key={s.name} style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -128,10 +185,29 @@ const OperationsPage: React.FC<OperationsPageProps> = ({ navigate }) => {
           </div>
         </div>
         <div className="card">
-          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: "#0f172a" }}>ATV &amp; UPT by Day of Week</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-            <DayBarChart title="ATV by Day of Week" data={atvByDay} format={(v) => `$${v.toFixed(0)}`} color="#3b82f6" />
-            <DayBarChart title="UPT by Day of Week" data={uptByDay} format={(v) => v.toFixed(1)} color="#8b5cf6" />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, gap: 8 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>Store Performance — Day of Week vs.</div>
+            <Select value={comparePeriod} onValueChange={(v) => v && setComparePeriod(v)}>
+              <SelectTrigger className="w-[140px]" size="sm"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {comparePeriods.map((p) => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {dayMetrics.map((m) => (
+              <DayComparisonChart
+                key={m.key}
+                metricKey={m.key}
+                title={m.title}
+                current={m.current}
+                compare={getCompareData(m, comparePeriod)}
+                format={m.format}
+                color={m.color}
+              />
+            ))}
           </div>
         </div>
       </div>
