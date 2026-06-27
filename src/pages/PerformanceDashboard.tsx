@@ -195,65 +195,69 @@ const PerformanceDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: 16, border: "1px solid #fecaca", background: "#fef9f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 16, alignItems: "start" }}>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div className="metric-label">Revenue at Risk</div>
-            <Tooltip text="Customers who dwelled 2+ min without associate contact and left without purchasing">
-              <span style={{ fontSize: 11, color: "#94a3b8", cursor: "help" }}>?</span>
-            </Tooltip>
-          </div>
-          <div className="metric-value" style={{ fontSize: 22, color: "#dc2626" }}>$840</div>
-        </div>
-        <div className="metric-delta-red">▼ 14 uncontacted dwellers today</div>
-      </div>
-
-      {metricCharts.map((cfg) => <MetricBarChart key={cfg.key} cfg={cfg} />)}
-
-      <div className="card">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>Power Hours — Today</div>
-            <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>Green = predicted peak. Staff accordingly.</div>
-          </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            {Object.entries(signalLabels).map(([k, label]) => (
-              <button key={k} onClick={() => toggleSignal(k as keyof typeof signals)}
-                style={{ padding: "4px 10px", fontSize: 11, fontWeight: 600, borderRadius: 9999, border: `1px solid ${signals[k as keyof typeof signals] ? "#3b82f6" : "#e2e8f0"}`, background: signals[k as keyof typeof signals] ? "#eff6ff" : "white", color: signals[k as keyof typeof signals] ? "#1d4ed8" : "#64748b", cursor: "pointer" }}>
-                {label}
-              </button>
-            ))}
-            <Tooltip text={`Baseline: 340 · ${signals.weather ? "+15% Saturday · −8% rain · " : ""}${signals.events ? "+5% local event · " : ""}${signals.promo ? "+22% sale event · " : " "}= ${signals.weather && signals.promo ? "412" : signals.weather ? "380" : "340"} predicted`}>
-              <span style={{ fontSize: 13, color: "#64748b", cursor: "help" }}>
-                Predicted: <strong style={{ color: "#0f172a" }}>{signals.weather && signals.promo ? "1,412" : signals.weather ? "1,380" : "1,248"} visitors</strong> ⓘ
-              </span>
-            </Tooltip>
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: 4, alignItems: "flex-end", height: 100 }}>
-          {powerHours.map((h, i) => (
-            <div key={h.hour} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div style={{ width: "100%", height: 80, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
-                <div
-                  style={{ width: "100%", height: `${(h.traffic / maxT) * 100}%`, background: h.isPower ? "#22c55e" : "#3b82f6", borderRadius: "3px 3px 0 0", opacity: h.isPower ? 1 : 0.6, position: "relative", cursor: "default" }}
-                  onMouseEnter={() => setHoveredBar(i)}
-                  onMouseLeave={() => setHoveredBar(null)}
-                >
-                  {h.isPower && hoveredBar !== i && <div style={{ position: "absolute", top: -16, left: "50%", transform: "translateX(-50%)", fontSize: 10, color: "#16a34a", fontWeight: 700, whiteSpace: "nowrap" }}>★ Peak</div>}
-                  {hoveredBar === i && (
-                    <div style={{ position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)", background: "#0f172a", color: "white", padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
-                      {h.traffic}
-                    </div>
-                  )}
-                </div>
+          <div className="card" style={{ marginBottom: 16, border: "1px solid #fecaca", background: "#fef9f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div className="metric-label">Revenue at Risk</div>
+                <Tooltip text="Customers who dwelled 2+ min without associate contact and left without purchasing">
+                  <span style={{ fontSize: 11, color: "#94a3b8", cursor: "help" }}>?</span>
+                </Tooltip>
               </div>
-              <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>{h.hour}</div>
+              <div className="metric-value" style={{ fontSize: 22, color: "#dc2626" }}>$840</div>
             </div>
-          ))}
+            <div className="metric-delta-red">▼ 14 uncontacted dwellers today</div>
+          </div>
+
+          {metricCharts.map((cfg) => <MetricBarChart key={cfg.key} cfg={cfg} />)}
+
+          <div className="card">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>Power Hours — Today</div>
+                <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>Green = predicted peak. Staff accordingly.</div>
+              </div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                {Object.entries(signalLabels).map(([k, label]) => (
+                  <button key={k} onClick={() => toggleSignal(k as keyof typeof signals)}
+                    style={{ padding: "4px 10px", fontSize: 11, fontWeight: 600, borderRadius: 9999, border: `1px solid ${signals[k as keyof typeof signals] ? "#3b82f6" : "#e2e8f0"}`, background: signals[k as keyof typeof signals] ? "#eff6ff" : "white", color: signals[k as keyof typeof signals] ? "#1d4ed8" : "#64748b", cursor: "pointer" }}>
+                    {label}
+                  </button>
+                ))}
+                <Tooltip text={`Baseline: 340 · ${signals.weather ? "+15% Saturday · −8% rain · " : ""}${signals.events ? "+5% local event · " : ""}${signals.promo ? "+22% sale event · " : " "}= ${signals.weather && signals.promo ? "412" : signals.weather ? "380" : "340"} predicted`}>
+                  <span style={{ fontSize: 13, color: "#64748b", cursor: "help" }}>
+                    Predicted: <strong style={{ color: "#0f172a" }}>{signals.weather && signals.promo ? "1,412" : signals.weather ? "1,380" : "1,248"} visitors</strong> ⓘ
+                  </span>
+                </Tooltip>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 4, alignItems: "flex-end", height: 100 }}>
+              {powerHours.map((h, i) => (
+                <div key={h.hour} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                  <div style={{ width: "100%", height: 80, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+                    <div
+                      style={{ width: "100%", height: `${(h.traffic / maxT) * 100}%`, background: h.isPower ? "#22c55e" : "#3b82f6", borderRadius: "3px 3px 0 0", opacity: h.isPower ? 1 : 0.6, position: "relative", cursor: "default" }}
+                      onMouseEnter={() => setHoveredBar(i)}
+                      onMouseLeave={() => setHoveredBar(null)}
+                    >
+                      {h.isPower && hoveredBar !== i && <div style={{ position: "absolute", top: -16, left: "50%", transform: "translateX(-50%)", fontSize: 10, color: "#16a34a", fontWeight: 700, whiteSpace: "nowrap" }}>★ Peak</div>}
+                      {hoveredBar === i && (
+                        <div style={{ position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)", background: "#0f172a", color: "white", padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 700, whiteSpace: "nowrap", zIndex: 10 }}>
+                          {h.traffic}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>{h.hour}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 16 }}>
-          <div>
+        <div>
+          <div className="card" style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", marginBottom: 10 }}>AI Recommendations</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {[
@@ -273,7 +277,7 @@ const PerformanceDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div>
+          <div className="card">
             <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", marginBottom: 10 }}>Coaching Moments</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {[
