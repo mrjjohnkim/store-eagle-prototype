@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const TrafficPage: React.FC = () => {
   const [compare, setCompare] = useState("Last Year");
-  const [region, setRegion] = useState("All Regions");
+  const [site, setSite] = useState("Fashion Ave");
   const [hoveredBar, setHoveredBar] = useState<{ day: number; isThis: boolean } | null>(null);
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const thisWeek = [1240, 1180, 1350, 1420, 1680, 2210, 1890];
@@ -29,11 +29,11 @@ const TrafficPage: React.FC = () => {
           {["Last Week", "Last Year", "Last Last Year"].map((c) => (
             <button key={c} className={`btn ${compare === c ? "btn-primary" : "btn-outline"}`} style={{ padding: "6px 12px", fontSize: 13 }} onClick={() => setCompare(c)}>{c}</button>
           ))}
-          <Select value={region} onValueChange={(v) => v && setRegion(v)}>
+          <Select value={site} onValueChange={(v) => v && setSite(v)}>
             <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {["All Regions", "Northeast", "West", "South", "Midwest"].map((r) => (
-                <SelectItem key={r} value={r}>{r}</SelectItem>
+              {["Fashion Ave", "Market Street", "Harbor Walk"].map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
               ))}
             </SelectContent>
           </Select>

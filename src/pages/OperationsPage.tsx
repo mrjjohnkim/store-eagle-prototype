@@ -59,7 +59,7 @@ const getCompareData = (m: typeof dayMetrics[number], period: string) => {
 
 const OperationsPage: React.FC<OperationsPageProps> = ({ navigate }) => {
   const [dateRange, setDateRange] = useState("This Week");
-  const [region, setRegion] = useState("All Regions");
+  const [site, setSite] = useState("Fashion Ave");
   const [comparePeriod, setComparePeriod] = useState<string>("Last Year");
   const [hoveredBar, setHoveredBar] = useState<HoveredBar>(null);
 
@@ -140,11 +140,11 @@ const OperationsPage: React.FC<OperationsPageProps> = ({ navigate }) => {
           {["Today", "Yesterday", "This Week", "This Month"].map((r) => (
             <button key={r} className={`btn ${dateRange === r ? "btn-primary" : "btn-outline"}`} style={{ padding: "6px 12px", fontSize: 13 }} onClick={() => setDateRange(r)}>{r}</button>
           ))}
-          <Select value={region} onValueChange={(v) => v && setRegion(v)}>
+          <Select value={site} onValueChange={(v) => v && setSite(v)}>
             <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {["All Regions", "Northeast", "West", "South", "Midwest"].map((r) => (
-                <SelectItem key={r} value={r}>{r}</SelectItem>
+              {["Fashion Ave", "Market Street", "Harbor Walk"].map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -168,7 +168,7 @@ const OperationsPage: React.FC<OperationsPageProps> = ({ navigate }) => {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 16 }}>
         <div className="card">
-          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: "#0f172a" }}>Conversion by Store — Top 5 ({region})</div>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: "#0f172a" }}>Conversion by Store — Top 5</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {stores.map((s, i) => (
               <div key={s.name} style={{ display: "flex", alignItems: "center", gap: 12 }}>

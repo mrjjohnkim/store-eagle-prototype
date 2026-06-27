@@ -8,7 +8,7 @@ interface VideoPageProps {
 }
 
 const VideoPage: React.FC<VideoPageProps> = ({ navigate }) => {
-  const [region, setRegion] = useState("All Regions");
+  const [site, setSite] = useState("Fashion Ave");
 
   return (
   <div>
@@ -17,11 +17,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ navigate }) => {
         <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 4px 0" }}>Live Video Feeds</h2>
         <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Eagle Eye sensor feeds — top-down people tracking with count lines</p>
       </div>
-      <Select value={region} onValueChange={(v) => v && setRegion(v)}>
+      <Select value={site} onValueChange={(v) => v && setSite(v)}>
         <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
         <SelectContent>
-          {["All Regions", "Northeast", "West", "South", "Midwest"].map((r) => (
-            <SelectItem key={r} value={r}>{r}</SelectItem>
+          {["Fashion Ave", "Market Street", "Harbor Walk"].map((s) => (
+            <SelectItem key={s} value={s}>{s}</SelectItem>
           ))}
         </SelectContent>
       </Select>
